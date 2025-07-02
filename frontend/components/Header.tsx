@@ -24,6 +24,7 @@ const NAV_ITEMS = [
   { label: 'Accueil', href: '/' },
   { label: 'Événements', href: '/events' },
   { label: 'Sports', href: '/sports' },
+  { label: 'Crédits', href: '/credits' },
   { label: 'À propos', href: '/about' },
   { label: 'Contact', href: '/contact' }
 ]
@@ -83,8 +84,8 @@ export default function Header() {
 
           {/* Actions */}
           <HStack spacing={3} display={{ base: 'none', md: 'flex' }}>
-            <Button variant="ghost" colorScheme="teal" borderRadius="full" px={4} fontWeight="500">Connexion</Button>
-            <Button colorScheme="teal" borderRadius="full" px={5} fontWeight="600">S'inscrire</Button>
+            <Button as={Link} href="/login" variant="ghost" colorScheme="teal" borderRadius="full" px={4} fontWeight="500">Connexion</Button>
+            <Button as={Link} href="/signup" colorScheme="teal" borderRadius="full" px={5} fontWeight="600">S'inscrire</Button>
           </HStack>
 
           {/* Menu mobile */}
@@ -121,8 +122,8 @@ export default function Header() {
                   {item.label}
                 </Link>
               ))}
-              <Button colorScheme="teal" borderRadius="full" w="full">Connexion</Button>
-              <Button variant="outline" colorScheme="teal" borderRadius="full" w="full">S'inscrire</Button>
+              <Button as={Link} href="/login" colorScheme="teal" borderRadius="full" w="full">Connexion</Button>
+              <Button as={Link} href="/signup" variant="outline" colorScheme="teal" borderRadius="full" w="full">S'inscrire</Button>
             </VStack>
           </DrawerBody>
         </DrawerContent>
