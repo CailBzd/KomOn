@@ -1,4 +1,4 @@
-import { extendTheme, type ThemeConfig } from '@chakra-ui/react'
+import { extendTheme, type ThemeConfig, theme as baseTheme } from '@chakra-ui/react'
 
 const config: ThemeConfig = {
   initialColorMode: 'light',
@@ -8,6 +8,7 @@ const config: ThemeConfig = {
 const theme = extendTheme({
   config,
   colors: {
+    ...baseTheme.colors, // Inclut toutes les couleurs natives de Chakra (teal, blue, green, etc.)
     brand: {
       50: '#f0f9ff',
       100: '#e0f2fe',

@@ -12,6 +12,7 @@
     "clean:all": "rm -rf .next out node_modules yarn.lock"
   },
   "dependencies": {
+    "@chakra-ui/icons": "^2.2.4",
     "@chakra-ui/next-js": "^2.2.0",
     "@chakra-ui/react": "^2.8.0",
     "@emotion/react": "^11.11.0",
@@ -26,7 +27,7 @@
     "@types/react-dom": "^18.2.0",
     "axios": "^1.5.0",
     "date-fns": "^2.30.0",
-    "framer-motion": "^10.16.0",
+    "framer-motion": "^12.23.0",
     "lucide-react": "^0.294.0",
     "mapbox-gl": "^2.15.0",
     "next": "14.0.0",
@@ -34,6 +35,7 @@
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.47.0",
     "react-hot-toast": "^2.4.0",
+    "react-icons": "^5.5.0",
     "react-map-gl": "^7.1.0",
     "typescript": "^5.2.0",
     "zod": "^3.22.0"
