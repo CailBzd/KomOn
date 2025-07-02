@@ -1,0 +1,115 @@
+version: '3.8'
+
+services:
+  # Base de données PostgreSQL
+  postgres:
+    image: postgres:15
+    container_name: komon-postgres
+    environment:
+      POSTGRES_DB: komon
+      POSTGRES_USER: komon_user
+      POSTGRES_PASSWORD: komon_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - komon-network
+
+  # Redis pour le cache et les sessions
+  redis:
+    image: redis:7-alpine
+    container_name: komon-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - komon-network
+
+  # API Backend (.NET Core)
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: komon-api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=postgres;Database=komon;Username=komon_user;Password=komon_password
+      - ConnectionStrings__Redis=redis:6379
+    ports:
+      - "5000:5000"
+      - "5001:5001"
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./backend:/app
+      - /app/bin
+      - /app/obj
+    networks:
+      - komon-network
+
+  # Frontend Web (Next.js)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: komon-frontend
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:5000
+      - NODE_ENV=development
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    networks:
+      - komon-network
+
+  # Application Mobile (Expo)
+  mobile:
+    build:
+      context: ./mobile
+      dockerfile: Dockerfile
+    container_name: komon-mobile
+    environment:
+      - EXPO_DEVTOOLS_LISTEN_ADDRESS=0.0.0.0
+    ports:
+      - "19000:19000"
+      - "19001:19001"
+      - "19002:19002"
+    depends_on:
+      - api
+    volumes:
+      - ./mobile:/app
+      - /app/node_modules
+    networks:
+      - komon-network
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: komon-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/ssl:/etc/nginx/ssl
+    depends_on:
+      - api
+      - frontend
+    networks:
+      - komon-network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  komon-network:
+    driver: bridge 
