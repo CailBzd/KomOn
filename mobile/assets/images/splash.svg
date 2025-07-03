@@ -1,0 +1,12 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1024" height="1024" fill="#3b82f6"/>
+  <g transform="translate(512, 512)">
+    <!-- Logo K dans un cercle -->
+    <circle cx="0" cy="0" r="200" fill="#81e6d9" stroke="white" stroke-width="8"/>
+    <text x="0" y="60" font-family="Arial, sans-serif" font-size="120" font-weight="bold" text-anchor="middle" fill="white">K</text>
+    
+    <!-- Texte KomOn -->
+    <text x="0" y="280" font-family="Arial, sans-serif" font-size="48" font-weight="bold" text-anchor="middle" fill="white">KomOn</text>
+    <text x="0" y="320" font-family="Arial, sans-serif" font-size="24" text-anchor="middle" fill="white">Organisez vos événements sportifs</text>
+  </g>
+</svg> 

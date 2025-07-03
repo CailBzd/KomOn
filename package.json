@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "@chakra-ui/icons": "^2.2.4",
+    "expo": "^53.0.16",
     "framer-motion": "^12.23.0"
   }
 }
