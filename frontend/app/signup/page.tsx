@@ -29,7 +29,9 @@ import { CheckIcon, StarIcon } from '@chakra-ui/icons'
 import { FaCrown, FaHandshake, FaUsers, FaCoins, FaStar, FaCheck } from 'react-icons/fa'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useAuth } from '@/lib/api/auth'
+import { useRouter } from 'next/navigation'
 
 const MotionCard = motion(Card)
 
@@ -161,6 +163,7 @@ export default function SignUpPage() {
   const bgColor = useColorModeValue('gray.50', 'gray.900')
   const cardBg = useColorModeValue('white', 'gray.800')
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly')
+  const router = useRouter()
 
   const getPlanPrice = (planId: string) => {
     if (planId === 'free' || planId === 'partnership') {
@@ -188,6 +191,13 @@ export default function SignUpPage() {
       return annualPricing[planId as keyof typeof annualPricing].freeMonths
     }
     return 0
+  }
+
+  const handleSignUp = async (planId: string) => {
+    // Implement the signup logic here
+    // This is a placeholder and should be replaced with the actual implementation
+    console.log(`Signing up for plan: ${planId}`)
+    router.push('/dashboard')
   }
 
   return (

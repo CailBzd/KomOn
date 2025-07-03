@@ -23,10 +23,12 @@ import {
   AlertDescription,
   Icon
 } from '@chakra-ui/react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { FaSignInAlt, FaArrowLeft } from 'react-icons/fa'
 import Link from 'next/link'
+import { useAuth } from '@/lib/api/auth'
+import { useRouter } from 'next/navigation'
 
 const MotionBox = motion(Box)
 
@@ -38,6 +40,8 @@ interface LoginData {
 
 export default function LoginPage() {
   const toast = useToast()
+  const { login, isAuthenticated, loading } = useAuth()
+  const router = useRouter()
   
   const [formData, setFormData] = useState<LoginData>({
     email: '',
@@ -46,6 +50,20 @@ export default function LoginPage() {
   })
   
   const [isLoading, setIsLoading] = useState(false)
+  const [isRedirecting, setIsRedirecting] = useState(false)
+
+  // Redirection si déjà connecté
+  useEffect(() => {
+    if (isAuthenticated && !loading && !isRedirecting) {
+      setIsRedirecting(true)
+      // Délai pour éviter le clignotement
+      const timer = setTimeout(() => {
+        router.replace('/dashboard')
+      }, 100)
+      
+      return () => clearTimeout(timer)
+    }
+  }, [isAuthenticated, loading, router, isRedirecting])
 
   const handleInputChange = (field: keyof LoginData, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }))
@@ -68,8 +86,7 @@ export default function LoginPage() {
     setIsLoading(true)
     
     try {
-      // TODO: Intégration avec Supabase Auth
-      console.log('Données de connexion:', formData)
+      await login({ email: formData.email, password: formData.password, rememberMe: formData.rememberMe })
       
       toast({
         title: 'Connexion réussie !',
@@ -79,8 +96,7 @@ export default function LoginPage() {
         isClosable: true,
       })
       
-      // Redirection vers le dashboard
-      // router.push('/dashboard')
+      // La redirection se fait automatiquement via useEffect
       
     } catch (error) {
       toast({
@@ -93,6 +109,20 @@ export default function LoginPage() {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  if (loading) {
+    return (
+      <Box bg="gray.50" minH="100vh" py={20}>
+        <Container maxW="container.sm">
+          <Text>Chargement...</Text>
+        </Container>
+      </Box>
+    )
+  }
+
+  if (isAuthenticated) {
+    return null
   }
 
   return (
@@ -178,7 +208,7 @@ export default function LoginPage() {
             <Box>
               <AlertTitle>Mode démo</AlertTitle>
               <AlertDescription>
-                Cette page est en mode démo. L'authentification sera intégrée avec Supabase.
+                Cette page utilise l'authentification en mode fake. Utilisez n'importe quel email/mot de passe.
               </AlertDescription>
             </Box>
           </Alert>
@@ -198,15 +228,16 @@ export default function LoginPage() {
               </ChakraLink>
             </Text>
             
-            <Button
-              as={Link}
-              href="/"
-              variant="ghost"
-              size="sm"
-              leftIcon={<FaArrowLeft />}
-            >
-              Retour à l'accueil
-            </Button>
+            <Link href="/" passHref>
+              <Button
+                leftIcon={<FaArrowLeft />}
+                variant="ghost"
+                colorScheme="teal"
+                size="sm"
+              >
+                Retour à l'accueil
+              </Button>
+            </Link>
           </VStack>
         </VStack>
       </Container>

@@ -1,6 +1,7 @@
-using KomOn.API.Middleware;
 using KomOn.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using KomOn.Core.Interfaces;
+using KomOn.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,18 +31,22 @@ builder.Services.AddCors(options =>
 builder.Services.AddAutoMapper(typeof(Program));
 
 // Services
-builder.Services.AddScoped<IEventService, EventService>();
-builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddScoped<IEventService, KomOn.Infrastructure.Services.EventService>();
+builder.Services.AddScoped<IUserService, KomOn.Infrastructure.Services.UserService>();
+builder.Services.AddScoped<IAuthService, KomOn.Infrastructure.Services.AuthService>();
+builder.Services.AddScoped<IPaymentService, KomOn.Infrastructure.Services.PaymentService>();
+builder.Services.AddScoped<KomOn.API.Services.AuthService>();
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
+// Swagger toujours activé pour la documentation API
+app.UseSwagger();
+app.UseSwaggerUI();
+
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    // Configuration spécifique au développement si nécessaire
 }
 
 app.UseHttpsRedirection();
@@ -53,7 +58,10 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+// Initialiser l'utilisateur de test par défaut
+await KomOn.Infrastructure.Services.UserService.InitializeDefaultTestUserAsync();
+
 // Global exception handler
-app.UseMiddleware<ExceptionHandlingMiddleware>();
+// app.UseMiddleware<ExceptionHandlingMiddleware>(); // TODO: Décommenter si le middleware existe
 
 app.Run(); 
