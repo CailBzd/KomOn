@@ -4,6 +4,8 @@ import { Providers } from './providers'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import { Box } from '@chakra-ui/react'
+import { ReactNode } from 'react'
+import { AuthProvider } from '@/lib/api/auth'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -53,18 +55,20 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: ReactNode
 }) {
   return (
     <html lang="fr">
       <body className={inter.className}>
-        <Providers>
-          <Header />
-          <Box as="main" pt="70px" minH="100vh" bg="gray.50">
-            {children}
-          </Box>
-          <Footer />
-        </Providers>
+        <AuthProvider>
+          <Providers>
+            <Header />
+            <Box as="main" pt="70px" minH="100vh" bg="gray.50">
+              {children}
+            </Box>
+            <Footer />
+          </Providers>
+        </AuthProvider>
       </body>
     </html>
   )

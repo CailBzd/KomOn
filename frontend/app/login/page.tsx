@@ -50,20 +50,24 @@ export default function LoginPage() {
   })
   
   const [isLoading, setIsLoading] = useState(false)
-  const [isRedirecting, setIsRedirecting] = useState(false)
+  const [loginSuccess, setLoginSuccess] = useState(false)
 
-  // Redirection si déjà connecté
+  // Redirection si déjà connecté ou après connexion réussie
   useEffect(() => {
-    if (isAuthenticated && !loading && !isRedirecting) {
-      setIsRedirecting(true)
-      // Délai pour éviter le clignotement
-      const timer = setTimeout(() => {
-        router.replace('/dashboard')
-      }, 100)
-      
-      return () => clearTimeout(timer)
+    if (isAuthenticated && !loading) {
+      console.log('🔄 Redirection vers le dashboard...');
+      router.replace('/dashboard');
     }
-  }, [isAuthenticated, loading, router, isRedirecting])
+  }, [isAuthenticated, loading, router]);
+
+  // Redirection après connexion réussie
+  useEffect(() => {
+    if (loginSuccess && !loading) {
+      console.log('✅ Connexion réussie, redirection...');
+      setLoginSuccess(false);
+      router.replace('/dashboard');
+    }
+  }, [loginSuccess, loading, router]);
 
   const handleInputChange = (field: keyof LoginData, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }))
@@ -96,7 +100,8 @@ export default function LoginPage() {
         isClosable: true,
       })
       
-      // La redirection se fait automatiquement via useEffect
+      // Marquer la connexion comme réussie pour déclencher la redirection
+      setLoginSuccess(true)
       
     } catch (error) {
       toast({
@@ -122,7 +127,13 @@ export default function LoginPage() {
   }
 
   if (isAuthenticated) {
-    return null
+    return (
+      <Box bg="gray.50" minH="100vh" py={20}>
+        <Container maxW="container.sm">
+          <Text>Redirection en cours...</Text>
+        </Container>
+      </Box>
+    )
   }
 
   return (
