@@ -1,191 +1,197 @@
 using KomOn.Core.Entities;
 using KomOn.Core.Interfaces;
-using System.Security.Cryptography;
+using KomOn.Core.DTOs;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
+using System.Text.Json;
 
 namespace KomOn.Infrastructure.Services;
 
 public class UserService : IUserService
 {
-    // Stockage temporaire en mémoire pour les tests (sera remplacé par la base de données)
-    private static readonly Dictionary<Guid, User> _users = new();
-    private static readonly Dictionary<string, User> _usersByEmail = new();
+    private readonly HttpClient _httpClient;
+    private readonly string _restUrl;
+    private readonly string _apiKey;
 
-    public async Task<IEnumerable<User>> GetAllUsersAsync()
+    public UserService(SupabaseService supabaseService)
     {
-        return await Task.FromResult(_users.Values);
+        var settings = supabaseService.GetSettings();
+        _httpClient = new HttpClient();
+        _restUrl = settings.Url.TrimEnd('/') + "/rest/v1";
+        _apiKey = settings.ServiceRoleKey ?? settings.Key;
     }
 
-    public async Task<User?> GetUserByIdAsync(Guid id)
+    private void AddHeaders()
     {
-        return await Task.FromResult(_users.TryGetValue(id, out var user) ? user : null);
+        _httpClient.DefaultRequestHeaders.Clear();
+        _httpClient.DefaultRequestHeaders.Add("apikey", _apiKey);
+        _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_apiKey}");
+        _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
     }
 
-    public async Task<User?> GetUserByEmailAsync(string email)
+    public async Task<IEnumerable<User>> GetAllAsync()
     {
-        return await Task.FromResult(_usersByEmail.TryGetValue(email.ToLowerInvariant(), out var user) ? user : null);
+        AddHeaders();
+        var response = await _httpClient.GetAsync($"{_restUrl}/users?select=*");
+        response.EnsureSuccessStatusCode();
+        var json = await response.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<List<User>>(json) ?? new List<User>();
     }
 
-    public async Task<User> CreateUserAsync(User user, string password)
+    public async Task<User?> GetByIdAsync(Guid id)
     {
-        // Hasher le mot de passe
-        user.PasswordHash = await HashPasswordAsync(password);
-        
-        // Ajouter à la collection temporaire
-        _users[user.Id] = user;
-        _usersByEmail[user.Email.ToLowerInvariant()] = user;
-        
-        return await Task.FromResult(user);
+        AddHeaders();
+        var response = await _httpClient.GetAsync($"{_restUrl}/users?id=eq.{id}");
+        response.EnsureSuccessStatusCode();
+        var json = await response.Content.ReadAsStringAsync();
+        var users = JsonSerializer.Deserialize<List<User>>(json);
+        return users?.FirstOrDefault();
     }
 
-    public async Task<User> UpdateUserAsync(Guid id, User user)
+    public async Task<User?> GetByEmailAsync(string email)
     {
-        if (_users.TryGetValue(id, out var existingUser))
+        AddHeaders();
+        var response = await _httpClient.GetAsync($"{_restUrl}/users?email=eq.{email}");
+        response.EnsureSuccessStatusCode();
+        var json = await response.Content.ReadAsStringAsync();
+        var users = JsonSerializer.Deserialize<List<User>>(json);
+        return users?.FirstOrDefault();
+    }
+
+    public async Task<User> CreateAsync(CreateUserRequest request)
+    {
+        AddHeaders();
+        var user = new User
         {
-            // Mettre à jour les propriétés
-            existingUser.FirstName = user.FirstName;
-            existingUser.LastName = user.LastName;
-            existingUser.Email = user.Email;
-            existingUser.PhoneNumber = user.PhoneNumber;
-            existingUser.Bio = user.Bio;
-            existingUser.ProfilePictureUrl = user.ProfilePictureUrl;
-            existingUser.UpdatedAt = DateTime.UtcNow;
-            
-            // Mettre à jour l'index par email si nécessaire
-            if (existingUser.Email != user.Email)
-            {
-                _usersByEmail.Remove(existingUser.Email.ToLowerInvariant());
-                _usersByEmail[user.Email.ToLowerInvariant()] = existingUser;
-            }
-            
-            return await Task.FromResult(existingUser);
-        }
-        
-        throw new ArgumentException("Utilisateur non trouvé");
+            Id = Guid.NewGuid(), // En production, utiliser l'ID de Supabase Auth si besoin
+            FirstName = request.FirstName,
+            LastName = request.LastName,
+            Email = request.Email.ToLower(),
+            DateOfBirth = request.DateOfBirth,
+            PhoneNumber = request.PhoneNumber,
+            Bio = request.Bio,
+            Role = request.Role ?? "participant",
+            Status = "active",
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        // Hasher le mot de passe côté backend si besoin
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
+        var jsonContent = new StringContent(JsonSerializer.Serialize(user), Encoding.UTF8, "application/json");
+        var response = await _httpClient.PostAsync($"{_restUrl}/users", jsonContent);
+        response.EnsureSuccessStatusCode();
+        var json = await response.Content.ReadAsStringAsync();
+        var users = JsonSerializer.Deserialize<List<User>>(json);
+        return users?.FirstOrDefault()!;
     }
 
-    public async Task<bool> DeleteUserAsync(Guid id)
+    public async Task<User> UpdateAsync(Guid id, UpdateUserRequest request)
     {
-        if (_users.TryGetValue(id, out var user))
+        AddHeaders();
+        var existingUser = await GetByIdAsync(id);
+        if (existingUser == null)
+            throw new ArgumentException("Utilisateur non trouvé");
+        if (!string.IsNullOrEmpty(request.FirstName))
+            existingUser.FirstName = request.FirstName;
+        if (!string.IsNullOrEmpty(request.LastName))
+            existingUser.LastName = request.LastName;
+        if (!string.IsNullOrEmpty(request.PhoneNumber))
+            existingUser.PhoneNumber = request.PhoneNumber;
+        if (request.DateOfBirth.HasValue)
+            existingUser.DateOfBirth = request.DateOfBirth.Value;
+        if (!string.IsNullOrEmpty(request.Bio))
+            existingUser.Bio = request.Bio;
+        if (!string.IsNullOrEmpty(request.Role))
+            existingUser.Role = request.Role;
+        if (!string.IsNullOrEmpty(request.Status))
+            existingUser.Status = request.Status;
+        existingUser.UpdatedAt = DateTime.UtcNow;
+        var jsonContent = new StringContent(JsonSerializer.Serialize(existingUser), Encoding.UTF8, "application/json");
+        var requestMsg = new HttpRequestMessage(new HttpMethod("PATCH"), $"{_restUrl}/users?id=eq.{id}")
         {
-            _users.Remove(id);
-            _usersByEmail.Remove(user.Email.ToLowerInvariant());
-            return await Task.FromResult(true);
-        }
-        
-        return await Task.FromResult(false);
+            Content = jsonContent
+        };
+        var response = await _httpClient.SendAsync(requestMsg);
+        response.EnsureSuccessStatusCode();
+        var json = await response.Content.ReadAsStringAsync();
+        var users = JsonSerializer.Deserialize<List<User>>(json);
+        return users?.FirstOrDefault()!;
     }
 
-    public async Task<bool> ChangePasswordAsync(Guid userId, string currentPassword, string newPassword)
+    public async Task<bool> DeleteAsync(Guid id)
     {
-        if (_users.TryGetValue(userId, out var user))
+        AddHeaders();
+        var response = await _httpClient.DeleteAsync($"{_restUrl}/users?id=eq.{id}");
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> UpdateProfileAsync(Guid id, UpdateProfileRequest request)
+    {
+        var user = await GetByIdAsync(id);
+        if (user == null) return false;
+        if (!string.IsNullOrEmpty(request.FirstName))
+            user.FirstName = request.FirstName;
+        if (!string.IsNullOrEmpty(request.LastName))
+            user.LastName = request.LastName;
+        if (!string.IsNullOrEmpty(request.PhoneNumber))
+            user.PhoneNumber = request.PhoneNumber;
+        if (request.DateOfBirth.HasValue)
+            user.DateOfBirth = request.DateOfBirth.Value;
+        if (!string.IsNullOrEmpty(request.Bio))
+            user.Bio = request.Bio;
+        user.UpdatedAt = DateTime.UtcNow;
+        return (await UpdateAsync(id, new UpdateUserRequest
         {
-            // Vérifier l'ancien mot de passe
-            var currentHash = await HashPasswordAsync(currentPassword);
-            if (user.PasswordHash != currentHash)
-            {
-                return false;
-            }
-            
-            // Mettre à jour avec le nouveau mot de passe
-            user.PasswordHash = await HashPasswordAsync(newPassword);
-            user.UpdatedAt = DateTime.UtcNow;
-            
-            return true;
-        }
-        
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            PhoneNumber = user.PhoneNumber,
+            DateOfBirth = user.DateOfBirth,
+            Bio = user.Bio
+        })) != null;
+    }
+
+    public async Task<bool> UpdateProfilePictureAsync(Guid id, string imageUrl)
+    {
+        var user = await GetByIdAsync(id);
+        if (user == null) return false;
+        user.ProfilePictureUrl = imageUrl;
+        user.UpdatedAt = DateTime.UtcNow;
+        return (await UpdateAsync(id, new UpdateUserRequest { })) != null;
+    }
+
+    public async Task<bool> UpdateCreditBalanceAsync(Guid id, decimal amount)
+    {
+        // À implémenter selon la structure de la table
         return false;
     }
 
-    public async Task<bool> UpdateUserRoleAsync(Guid userId, UserRole role)
+    public async Task<bool> ChangeRoleAsync(Guid id, string newRole)
     {
-        if (_users.TryGetValue(userId, out var user))
-        {
-            user.Role = role;
-            user.UpdatedAt = DateTime.UtcNow;
-            return await Task.FromResult(true);
-        }
-        
-        return await Task.FromResult(false);
+        var user = await GetByIdAsync(id);
+        if (user == null) return false;
+        user.Role = newRole;
+        user.UpdatedAt = DateTime.UtcNow;
+        return (await UpdateAsync(id, new UpdateUserRequest { Role = newRole })) != null;
     }
 
-    public async Task<bool> UpdateUserStatusAsync(Guid userId, UserStatus status)
+    public async Task<bool> ChangeStatusAsync(Guid id, string newStatus)
     {
-        if (_users.TryGetValue(userId, out var user))
-        {
-            user.Status = status;
-            user.UpdatedAt = DateTime.UtcNow;
-            return await Task.FromResult(true);
-        }
-        
-        return await Task.FromResult(false);
-    }
-
-    public async Task<IEnumerable<User>> GetUsersByRoleAsync(UserRole role)
-    {
-        var users = _users.Values.Where(u => u.Role == role);
-        return await Task.FromResult(users);
+        var user = await GetByIdAsync(id);
+        if (user == null) return false;
+        user.Status = newStatus;
+        user.UpdatedAt = DateTime.UtcNow;
+        return (await UpdateAsync(id, new UpdateUserRequest { Status = newStatus })) != null;
     }
 
     public async Task<bool> ValidateUserCredentialsAsync(string email, string password)
     {
-        var user = await GetUserByEmailAsync(email);
-        if (user == null)
-        {
-            return false;
-        }
-        
-        var hashedPassword = await HashPasswordAsync(password);
-        return user.PasswordHash == hashedPassword;
+        // Pour l'authentification, il faut passer par Supabase Auth (voir SupabaseService)
+        // Ici, on ne valide que l'existence de l'utilisateur
+        var user = await GetByEmailAsync(email);
+        if (user == null) return false;
+        return BCrypt.Net.BCrypt.Verify(password, user.PasswordHash);
     }
 
-    private async Task<string> HashPasswordAsync(string password)
-    {
-        using var sha256 = SHA256.Create();
-        var hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
-        return await Task.FromResult(Convert.ToBase64String(hashedBytes));
-    }
 
-    // Méthode utilitaire pour nettoyer les données de test
-    public static void ClearTestData()
-    {
-        _users.Clear();
-        _usersByEmail.Clear();
-    }
-
-    // Méthode utilitaire pour ajouter des données de test
-    public static async Task<User> AddTestUserAsync(string email, string password, string firstName = "Test", string lastName = "User")
-    {
-        var user = new User
-        {
-            Id = Guid.NewGuid(),
-            FirstName = firstName,
-            LastName = lastName,
-            Email = email,
-            DateOfBirth = new DateTime(1990, 1, 1),
-            Role = UserRole.Participant,
-            Status = UserStatus.Active,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
-
-        var service = new UserService();
-        return await service.CreateUserAsync(user, password);
-    }
-
-    // Méthode pour initialiser un utilisateur de test par défaut
-    public static async Task InitializeDefaultTestUserAsync()
-    {
-        // Vérifier si l'utilisateur de test existe déjà
-        var existingUser = _usersByEmail.GetValueOrDefault("admin@komon.com");
-        if (existingUser == null)
-        {
-            await AddTestUserAsync(
-                email: "admin@komon.com",
-                password: "Admin123!",
-                firstName: "Admin",
-                lastName: "KomOn"
-            );
-        }
-    }
 } 

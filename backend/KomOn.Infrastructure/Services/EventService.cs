@@ -51,15 +51,15 @@ public class EventService : IEventService
         return await Task.FromResult(_events.Remove(id));
     }
 
-    public async Task<bool> CancelEventAsync(Guid id)
+    public Task<bool> CancelEventAsync(Guid id)
     {
         if (_events.TryGetValue(id, out var evt))
         {
             evt.Status = EventStatus.Cancelled;
             evt.UpdatedAt = DateTime.UtcNow;
-            return true;
+            return Task.FromResult(true);
         }
-        return false;
+        return Task.FromResult(false);
     }
 
     public async Task<IEnumerable<Event>> GetEventsByOrganizerAsync(Guid organizerId)

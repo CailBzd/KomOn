@@ -104,9 +104,15 @@ export default function LoginPage() {
       setLoginSuccess(true)
       
     } catch (error) {
+      let errorMessage = 'Email ou mot de passe incorrect.';
+      
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      
       toast({
         title: 'Erreur de connexion',
-        description: 'Email ou mot de passe incorrect.',
+        description: errorMessage,
         status: 'error',
         duration: 5000,
         isClosable: true,
@@ -217,9 +223,12 @@ export default function LoginPage() {
           <Alert status="info" borderRadius="lg">
             <AlertIcon />
             <Box>
-              <AlertTitle>Mode démo</AlertTitle>
+              <AlertTitle>Comptes de test disponibles</AlertTitle>
               <AlertDescription>
-                Cette page utilise l'authentification en mode fake. Utilisez n'importe quel email/mot de passe.
+                <VStack align="start" spacing={2}>
+                  <Text><strong>Super Admin:</strong> admin@komon.com / Admin123!</Text>
+                  <Text><strong>Utilisateur Test:</strong> test@komon.com / Test123!</Text>
+                </VStack>
               </AlertDescription>
             </Box>
           </Alert>

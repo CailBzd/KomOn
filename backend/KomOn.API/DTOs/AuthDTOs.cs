@@ -67,8 +67,8 @@ public class UserDto
     public DateTime DateOfBirth { get; set; }
     public string? Bio { get; set; }
     public string? ProfilePictureUrl { get; set; }
-    public UserRole Role { get; set; }
-    public UserStatus Status { get; set; }
+    public string Role { get; set; } = string.Empty;
+    public string Status { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
 }
 

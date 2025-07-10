@@ -33,8 +33,8 @@ public class MappingProfile : Profile
         CreateMap<RegisterRequest, User>()
             .ForMember(dest => dest.Id, opt => opt.Ignore()) // Sera généré automatiquement
             .ForMember(dest => dest.PasswordHash, opt => opt.Ignore()) // Sera hashé par le service
-            .ForMember(dest => dest.Role, opt => opt.MapFrom(src => UserRole.Participant))
-            .ForMember(dest => dest.Status, opt => opt.MapFrom(src => UserStatus.Active))
+            .ForMember(dest => dest.Role, opt => opt.MapFrom(src => "participant"))
+            .ForMember(dest => dest.Status, opt => opt.MapFrom(src => "active"))
             .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
             .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
             .ForMember(dest => dest.OrganizedEvents, opt => opt.Ignore())

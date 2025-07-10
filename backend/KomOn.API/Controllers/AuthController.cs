@@ -10,6 +10,13 @@ namespace KomOn.API.Controllers;
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
 {
+    // Gestion des requêtes OPTIONS pour CORS
+    [HttpOptions]
+    public IActionResult Options()
+    {
+        return Ok();
+    }
+
     private readonly AuthService _authService;
     private readonly IUserService _userService;
     private readonly IMapper _mapper;
@@ -62,6 +69,15 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
+    /// Gestion des requêtes OPTIONS pour l'endpoint login
+    /// </summary>
+    [HttpOptions("login")]
+    public IActionResult LoginOptions()
+    {
+        return Ok();
+    }
+
+    /// <summary>
     /// Connexion d'un utilisateur
     /// </summary>
     [HttpPost("login")]
@@ -105,7 +121,7 @@ public class AuthController : ControllerBase
     /// Rafraîchir le token JWT
     /// </summary>
     [HttpPost("refresh")]
-    public async Task<ActionResult<AuthResponse>> RefreshToken([FromBody] RefreshTokenRequest request)
+    public ActionResult<AuthResponse> RefreshToken([FromBody] RefreshTokenRequest request)
     {
         if (!ModelState.IsValid)
         {
@@ -128,7 +144,7 @@ public class AuthController : ControllerBase
     /// Changer le mot de passe
     /// </summary>
     [HttpPost("change-password")]
-    public async Task<ActionResult<AuthResponse>> ChangePassword([FromBody] ChangePasswordRequest request)
+    public ActionResult<AuthResponse> ChangePassword([FromBody] ChangePasswordRequest request)
     {
         if (!ModelState.IsValid)
         {
@@ -153,7 +169,7 @@ public class AuthController : ControllerBase
     /// Demander la réinitialisation du mot de passe
     /// </summary>
     [HttpPost("forgot-password")]
-    public async Task<ActionResult<AuthResponse>> ForgotPassword([FromBody] ForgotPasswordRequest request)
+    public ActionResult<AuthResponse> ForgotPassword([FromBody] ForgotPasswordRequest request)
     {
         if (!ModelState.IsValid)
         {
@@ -178,7 +194,7 @@ public class AuthController : ControllerBase
     /// Réinitialiser le mot de passe avec un token
     /// </summary>
     [HttpPost("reset-password")]
-    public async Task<ActionResult<AuthResponse>> ResetPassword([FromBody] ResetPasswordRequest request)
+    public ActionResult<AuthResponse> ResetPassword([FromBody] ResetPasswordRequest request)
     {
         if (!ModelState.IsValid)
         {
@@ -203,7 +219,7 @@ public class AuthController : ControllerBase
     /// Valider un token JWT
     /// </summary>
     [HttpPost("validate")]
-    public async Task<ActionResult<AuthResponse>> ValidateToken([FromBody] string token)
+    public ActionResult<AuthResponse> ValidateToken([FromBody] string token)
     {
         if (string.IsNullOrWhiteSpace(token))
         {
@@ -226,7 +242,7 @@ public class AuthController : ControllerBase
     /// Déconnexion (révocation du token)
     /// </summary>
     [HttpPost("logout")]
-    public async Task<ActionResult<AuthResponse>> Logout([FromBody] string token)
+    public ActionResult<AuthResponse> Logout([FromBody] string token)
     {
         if (string.IsNullOrWhiteSpace(token))
         {

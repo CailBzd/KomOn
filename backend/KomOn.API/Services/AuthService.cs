@@ -4,8 +4,10 @@ using System.Security.Cryptography;
 using System.Text;
 using KomOn.Core.Entities;
 using KomOn.Core.Interfaces;
+using KomOn.Core.DTOs;
 using KomOn.API.DTOs;
 using Microsoft.IdentityModel.Tokens;
+using BCrypt.Net;
 
 namespace KomOn.API.Services;
 
@@ -42,7 +44,7 @@ public class AuthService
         }
 
         // Vérifier si l'email existe déjà
-        var existingUser = await _userService.GetUserByEmailAsync(request.Email);
+        var existingUser = await _userService.GetByEmailAsync(request.Email);
         if (existingUser != null)
         {
             return new AuthResult
@@ -53,22 +55,19 @@ public class AuthService
         }
 
         // Créer l'utilisateur
-        var user = new User
+        var createUserRequest = new CreateUserRequest
         {
-            Id = Guid.NewGuid(),
             FirstName = request.FirstName,
             LastName = request.LastName,
             Email = request.Email,
             DateOfBirth = request.DateOfBirth,
             PhoneNumber = request.PhoneNumber,
             Bio = request.Bio,
-            Role = UserRole.Participant,
-            Status = UserStatus.Active,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            Password = request.Password,
+            Role = "Participant"
         };
 
-        var createdUser = await _userService.CreateUserAsync(user, request.Password);
+        var createdUser = await _userService.CreateAsync(createUserRequest);
         var token = await _authService.GenerateJwtTokenAsync(createdUser.Id);
 
         return new AuthResult
@@ -93,7 +92,7 @@ public class AuthService
         }
 
         // Récupérer l'utilisateur
-        var user = await _userService.GetUserByEmailAsync(request.Email);
+        var user = await _userService.GetByEmailAsync(request.Email);
         if (user == null)
         {
             return new AuthResult

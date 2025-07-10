@@ -73,14 +73,28 @@ class AuthService {
     try {
       const response = await fetch(url, config);
       
+      console.log('📡 Response status:', response.status, response.statusText);
+      
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+        const errorMessage = errorData.error || `HTTP error! status: ${response.status}`;
+        console.log('❌ HTTP Error:', errorMessage);
+        throw new Error(errorMessage);
       }
 
-      return await response.json();
+      const data = await response.json();
+      console.log('✅ API Response:', data);
+      return data;
     } catch (error) {
       console.error('API request failed:', error);
+      
+      // Marquer les erreurs de réseau pour les distinguer des erreurs d'authentification
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        const networkError = new Error('Network error: ' + error.message);
+        networkError.name = 'NetworkError';
+        throw networkError;
+      }
+      
       throw error;
     }
   }
@@ -99,9 +113,24 @@ class AuthService {
         body: JSON.stringify(data),
       });
     } catch (error) {
-      // Fallback pour le mode développement si l'API n'est pas disponible
-      console.log('🔄 API non disponible, utilisation du mode fallback');
-      return this.fallbackLogin(data);
+      // Vérifier si c'est une erreur de réseau ou une erreur d'authentification
+      if (error instanceof Error) {
+        // Si c'est une erreur HTTP (401, 400, etc.), c'est une erreur d'authentification
+        if (error.message.includes('HTTP error! status:')) {
+          console.log('❌ Erreur d\'authentification:', error.message);
+          throw error;
+        }
+        
+        // Si c'est une erreur de réseau (TypeError avec fetch), utiliser le fallback
+        if (error instanceof TypeError && error.message.includes('fetch')) {
+          console.log('🔄 API non disponible, utilisation du mode fallback');
+          return this.fallbackLogin(data);
+        }
+        
+        // Pour toute autre erreur, la propager
+        throw error;
+      }
+      throw error;
     }
   }
 
