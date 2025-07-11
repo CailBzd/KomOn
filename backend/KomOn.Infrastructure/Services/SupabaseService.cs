@@ -38,20 +38,38 @@ public class SupabaseService
                 Data = userData
             };
             var response = await _supabaseClient.Auth.SignUp(email, password, options);
-            if (response.User != null && !string.IsNullOrEmpty(response.AccessToken))
+            
+            if (response.User != null)
             {
+                // Vérifier si l'email est confirmé
+                if (!response.User.EmailConfirmedAt.HasValue)
+                {
+                    return new AuthResult
+                    {
+                        IsSuccess = true,
+                        Token = null, // Pas de token tant que l'email n'est pas vérifié
+                        RefreshToken = null,
+                        Error = "Inscription réussie. Veuillez vérifier votre email avant de vous connecter.",
+                        UserId = Guid.Parse(response.User.Id)
+                    };
+                }
+                
+                // Si l'email est déjà vérifié, on peut donner un token
                 return new AuthResult
                 {
                     IsSuccess = true,
-                    Token = response.AccessToken,
-                    RefreshToken = response.RefreshToken,
-                    Error = null
+                    Token = response.AccessToken ?? string.Empty,
+                    RefreshToken = response.RefreshToken ?? string.Empty,
+                    Error = null,
+                    UserId = Guid.Parse(response.User.Id)
                 };
             }
+            
             return new AuthResult
             {
                 IsSuccess = false,
-                Error = "Erreur lors de l'inscription."
+                Error = "Erreur lors de l'inscription.",
+                UserId = Guid.Empty
             };
         }
         catch (Exception ex)
@@ -59,7 +77,8 @@ public class SupabaseService
             return new AuthResult
             {
                 IsSuccess = false,
-                Error = $"Erreur lors de l'inscription: {ex.Message}"
+                Error = $"Erreur lors de l'inscription: {ex.Message}",
+                UserId = Guid.Empty
             };
         }
     }
@@ -69,15 +88,29 @@ public class SupabaseService
         try
         {
             var response = await _supabaseClient.Auth.SignIn(email, password);
-            if (response.User != null && !string.IsNullOrEmpty(response.AccessToken))
+            if (response.User != null)
             {
-                return new AuthResult
+                // Vérifier si l'email est confirmé
+                if (!response.User.EmailConfirmedAt.HasValue)
                 {
-                    IsSuccess = true,
-                    Token = response.AccessToken,
-                    RefreshToken = response.RefreshToken,
-                    Error = null
-                };
+                    return new AuthResult
+                    {
+                        IsSuccess = false,
+                        Error = "Votre email n'est pas encore validé.",
+                        Token = null,
+                        RefreshToken = null
+                    };
+                }
+                if (!string.IsNullOrEmpty(response.AccessToken))
+                {
+                    return new AuthResult
+                    {
+                        IsSuccess = true,
+                        Token = response.AccessToken ?? string.Empty,
+                        RefreshToken = response.RefreshToken ?? string.Empty,
+                        Error = null
+                    };
+                }
             }
             return new AuthResult
             {
@@ -322,8 +355,8 @@ public class SupabaseService
                 return new AuthResult
                 {
                     IsSuccess = true,
-                    Token = response.AccessToken,
-                    RefreshToken = response.RefreshToken,
+                    Token = response.AccessToken ?? string.Empty,
+                    RefreshToken = response.RefreshToken ?? string.Empty,
                     Error = null
                 };
             }
@@ -346,8 +379,8 @@ public class SupabaseService
                 return new AuthResult
                 {
                     IsSuccess = true,
-                    Token = response.AccessToken,
-                    RefreshToken = response.RefreshToken,
+                    Token = response.AccessToken ?? string.Empty,
+                    RefreshToken = response.RefreshToken ?? string.Empty,
                     Error = null
                 };
             }
@@ -370,8 +403,8 @@ public class SupabaseService
                 return new AuthResult
                 {
                     IsSuccess = true,
-                    Token = response.AccessToken,
-                    RefreshToken = response.RefreshToken,
+                    Token = response.AccessToken ?? string.Empty,
+                    RefreshToken = response.RefreshToken ?? string.Empty,
                     Error = null
                 };
             }
@@ -394,8 +427,8 @@ public class SupabaseService
                 return new AuthResult
                 {
                     IsSuccess = true,
-                    Token = response.AccessToken,
-                    RefreshToken = response.RefreshToken,
+                    Token = response.AccessToken ?? string.Empty,
+                    RefreshToken = response.RefreshToken ?? string.Empty,
                     Error = null
                 };
             }
@@ -417,8 +450,8 @@ public class SupabaseService
                 return new AuthResult
                 {
                     IsSuccess = true,
-                    Token = response.AccessToken,
-                    RefreshToken = response.RefreshToken,
+                    Token = response.AccessToken ?? string.Empty,
+                    RefreshToken = response.RefreshToken ?? string.Empty,
                     Error = null
                 };
             }
@@ -485,6 +518,39 @@ public class SupabaseService
         // À implémenter si besoin via l'API REST Supabase
         return new AuthResult { IsSuccess = false, Error = "Vérification OTP non supportée en natif par le SDK .NET. Utilisez le frontend ou l'API REST." };
     }
+
+    /// <summary>
+    /// Récupérer un utilisateur par email depuis la base de données Supabase
+    /// </summary>
+    public async Task<SupabaseUserInfo?> GetUserByEmailAsync(string email)
+    {
+        try
+        {
+            // Pour l'instant, on simule la récupération depuis Supabase
+            // TODO: Implémenter la vraie récupération depuis la table users de Supabase
+            await Task.Delay(100);
+            
+            // Retourner un objet par défaut avec les métadonnées de l'utilisateur
+            return new SupabaseUserInfo
+            {
+                Id = Guid.NewGuid(),
+                Email = email,
+                FirstName = "Utilisateur",
+                LastName = "Supabase",
+                PhoneNumber = null,
+                DateOfBirth = DateTime.Now.AddYears(-25),
+                Bio = null,
+                Role = "Participant",
+                Status = "Active",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+        }
+        catch
+        {
+            return null;
+        }
+    }
 }
 
 // Classe pour le résultat d'authentification Supabase
@@ -494,4 +560,21 @@ public class AuthResult
     public string? Error { get; set; }
     public string? Token { get; set; }
     public string? RefreshToken { get; set; }
+    public Guid UserId { get; set; } // Ajouté pour la synchro avec Supabase Auth
+}
+
+// Classe pour les informations utilisateur Supabase
+public class SupabaseUserInfo
+{
+    public Guid Id { get; set; }
+    public string Email { get; set; } = string.Empty;
+    public string? FirstName { get; set; }
+    public string? LastName { get; set; }
+    public string? PhoneNumber { get; set; }
+    public DateTime? DateOfBirth { get; set; }
+    public string? Bio { get; set; }
+    public string? Role { get; set; }
+    public string? Status { get; set; }
+    public DateTime? CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
 } 

@@ -28,6 +28,8 @@ public class UserService : IUserService
         _httpClient.DefaultRequestHeaders.Add("apikey", _apiKey);
         _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_apiKey}");
         _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        _httpClient.DefaultRequestHeaders.Remove("Prefer");
+        _httpClient.DefaultRequestHeaders.Add("Prefer", "return=representation");
     }
 
     public async Task<IEnumerable<User>> GetAllAsync()
@@ -74,7 +76,7 @@ public class UserService : IUserService
         AddHeaders();
         var user = new User
         {
-            Id = Guid.NewGuid(), // En production, utiliser l'ID de Supabase Auth si besoin
+            Id = request.Id, // Utilise l'ID fourni (celui de Supabase Auth)
             FirstName = request.FirstName,
             LastName = request.LastName,
             Email = request.Email.ToLower(),

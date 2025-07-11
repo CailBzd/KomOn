@@ -27,7 +27,7 @@ import {
 } from '@chakra-ui/react'
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { FaCrown, FaHandshake, FaUsers, FaArrowLeft } from 'react-icons/fa'
+import { FaCrown, FaHandshake, FaUsers, FaArrowLeft, FaCheck } from 'react-icons/fa'
 import SportSelection from '@/components/SportSelection'
 import Link from 'next/link'
 import { useAuth } from '@/lib/api/auth'
@@ -54,10 +54,6 @@ interface FormData {
   acceptTerms: boolean
   acceptNewsletter: boolean
   selectedSports: SelectedSport[]
-  emailCode: string
-  smsCode: string
-  emailVerified: boolean
-  smsVerified: boolean
 }
 
 const plans = {
@@ -98,16 +94,15 @@ export default function SignUpFormPage({ params }: { params: { plan: string } })
     confirmPassword: '',
     acceptTerms: false,
     acceptNewsletter: false,
-    selectedSports: [],
-    emailCode: '',
-    smsCode: '',
-    emailVerified: false,
-    smsVerified: false
+    selectedSports: []
   })
   
   const [isLoading, setIsLoading] = useState(false)
   const [currentStep, setCurrentStep] = useState(1)
   const totalSteps = 4
+
+  // Ajouter un nouvel état pour savoir si l'inscription est terminée
+  const [registrationComplete, setRegistrationComplete] = useState(false)
 
   // Redirection si déjà connecté
   if (isAuthenticated && !loading) {
@@ -142,92 +137,6 @@ export default function SignUpFormPage({ params }: { params: { plan: string } })
     handleInputChange('selectedSports', sports)
   }
 
-  const sendEmailCode = async () => {
-    try {
-      await authService.sendEmailVerification(formData.email)
-      toast({
-        title: 'Code envoyé !',
-        description: 'Vérifiez votre boîte email.',
-        status: 'success',
-        duration: 3000,
-        isClosable: true,
-      })
-    } catch (error) {
-      toast({
-        title: 'Erreur',
-        description: 'Impossible d\'envoyer le code email.',
-        status: 'error',
-        duration: 3000,
-        isClosable: true,
-      })
-    }
-  }
-
-  const sendSmsCode = async () => {
-    try {
-      await authService.sendSmsVerification(formData.phone)
-      toast({
-        title: 'Code envoyé !',
-        description: 'Vérifiez votre téléphone.',
-        status: 'success',
-        duration: 3000,
-        isClosable: true,
-      })
-    } catch (error) {
-      toast({
-        title: 'Erreur',
-        description: 'Impossible d\'envoyer le code SMS.',
-        status: 'error',
-        duration: 3000,
-        isClosable: true,
-      })
-    }
-  }
-
-  const verifyEmailCode = async () => {
-    try {
-      await authService.verifyEmailCode(formData.email, formData.emailCode)
-      handleInputChange('emailVerified', true)
-      toast({
-        title: 'Email vérifié !',
-        description: 'Votre email a été vérifié avec succès.',
-        status: 'success',
-        duration: 3000,
-        isClosable: true,
-      })
-    } catch (error) {
-      toast({
-        title: 'Code invalide',
-        description: 'Le code de vérification est incorrect.',
-        status: 'error',
-        duration: 3000,
-        isClosable: true,
-      })
-    }
-  }
-
-  const verifySmsCode = async () => {
-    try {
-      await authService.verifySmsCode(formData.phone, formData.smsCode)
-      handleInputChange('smsVerified', true)
-      toast({
-        title: 'SMS vérifié !',
-        description: 'Votre téléphone a été vérifié avec succès.',
-        status: 'success',
-        duration: 3000,
-        isClosable: true,
-      })
-    } catch (error) {
-      toast({
-        title: 'Code invalide',
-        description: 'Le code de vérification est incorrect.',
-        status: 'error',
-        duration: 3000,
-        isClosable: true,
-      })
-    }
-  }
-
   const validateStep1 = () => {
     const { firstName, lastName, email, phone, dateOfBirth } = formData
     return firstName.trim() && lastName.trim() && email.trim() && phone.trim() && dateOfBirth.trim()
@@ -241,10 +150,12 @@ export default function SignUpFormPage({ params }: { params: { plan: string } })
     const hasLowercase = /[a-z]/.test(password)
     const hasUppercase = /[A-Z]/.test(password)
     const hasNumber = /\d/.test(password)
-    const hasSpecialChar = /[@$!%*?&]/.test(password)
+    const hasSpecialChar = /[@$!%*?&\-]/.test(password)
+    // Vérifier que le mot de passe ne contient QUE les caractères autorisés
+    const onlyAllowedChars = /^[A-Za-z\d@$!%*?\-\-]+$/.test(password)
     const passwordsMatch = password === confirmPassword
     
-    return hasMinLength && hasLowercase && hasUppercase && hasNumber && hasSpecialChar && passwordsMatch
+    return hasMinLength && hasLowercase && hasUppercase && hasNumber && hasSpecialChar && onlyAllowedChars && passwordsMatch
   }
 
   const getPasswordValidationStatus = () => {
@@ -256,7 +167,8 @@ export default function SignUpFormPage({ params }: { params: { plan: string } })
     if (!/[a-z]/.test(password)) errors.push('Au moins une minuscule')
     if (!/[A-Z]/.test(password)) errors.push('Au moins une majuscule')
     if (!/\d/.test(password)) errors.push('Au moins un chiffre')
-    if (!/[@$!%*?&]/.test(password)) errors.push('Au moins un caractère spécial (@$!%*?&)')
+    if (!/[@$!%*?&\-]/.test(password)) errors.push('Au moins un caractère spécial (@$!%*?&-) - caractères autorisés uniquement')
+    if (!/^[A-Za-z\d@$!%*?\-\-]+$/.test(password)) errors.push('Caractères non autorisés détectés - utilisez seulement lettres, chiffres et @$!%*?&-')
     
     return {
       isValid: errors.length === 0,
@@ -269,17 +181,12 @@ export default function SignUpFormPage({ params }: { params: { plan: string } })
     return acceptTerms && selectedSports.length > 0
   }
 
-  const validateStep4 = () => {
-    const { emailVerified, smsVerified } = formData
-    return emailVerified && smsVerified
-  }
-
   const canProceed = () => {
     switch (currentStep) {
       case 1: return validateStep1()
       case 2: return validateStep2()
       case 3: return validateStep3()
-      case 4: return validateStep4()
+      case 4: return true // Step 4 is now always true as email/sms verification is removed
       default: return false
     }
   }
@@ -294,11 +201,10 @@ export default function SignUpFormPage({ params }: { params: { plan: string } })
     setCurrentStep(prev => Math.max(prev - 1, 1))
   }
 
+  // Modifier handleSubmit pour afficher l'étape 4 après inscription
   const handleSubmit = async () => {
     if (!canProceed()) return
-
     setIsLoading(true)
-    
     try {
       // Préparer les données pour l'API
       const registerData = {
@@ -310,29 +216,19 @@ export default function SignUpFormPage({ params }: { params: { plan: string } })
         phoneNumber: formData.phone,
         bio: `Sports préférés: ${formData.selectedSports.map(s => s.name).join(', ')}`
       }
-
-      console.log('📝 Données d\'inscription:', registerData)
-      
       await register(registerData)
+      setRegistrationComplete(true)
+      setCurrentStep(4) // Passer à l'étape 4 après inscription réussie
       
-      toast({
-        title: 'Inscription réussie !',
-        description: 'Votre compte a été créé avec succès.',
-        status: 'success',
-        duration: 5000,
-        isClosable: true,
-      })
-      
-      // Redirection vers le dashboard
-      router.push('/dashboard')
-      
+      // Rediriger vers la page de login après 5 secondes
+      setTimeout(() => {
+        router.push('/login')
+      }, 10000)
     } catch (error) {
       let errorMessage = 'Une erreur est survenue lors de l\'inscription.';
-      
       if (error instanceof Error) {
         errorMessage = error.message;
       }
-      
       toast({
         title: 'Erreur lors de l\'inscription',
         description: errorMessage,
@@ -586,168 +482,75 @@ export default function SignUpFormPage({ params }: { params: { plan: string } })
                   </MotionBox>
                 )}
 
-                {/* Step 4: Vérification */}
+                {/* Step 4 : message de validation */}
                 {currentStep === 4 && (
                   <MotionBox
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     w="full"
                   >
-                    <VStack spacing={6}>
-                      <Heading size="md" color="gray.700">
-                        Vérification de votre compte
+                    <VStack spacing={4} textAlign="center">
+                      <Icon as={FaCheck} boxSize={12} color="green.400" />
+                      <Heading size="md" color="green.700">
+                        Inscription réussie !
                       </Heading>
-                      
-                      <Text color="gray.600" textAlign="center">
-                        Pour finaliser votre inscription, nous devons vérifier votre email et votre numéro de téléphone.
+                      <Text color="gray.700" fontWeight="semibold" fontSize="lg">
+                        Un email de validation vient de vous être envoyé.
                       </Text>
-                      
-                      {/* Vérification Email */}
-                      <VStack spacing={4} w="full" p={4} border="1px solid" borderColor="gray.200" borderRadius="lg">
-                        <HStack justify="space-between" w="full">
-                          <VStack align="start" spacing={1}>
-                            <Text fontWeight="semibold" color="gray.700">
-                              Vérification Email
-                            </Text>
-                            <Text fontSize="sm" color="gray.500">
-                              {formData.email}
-                            </Text>
-                          </VStack>
-                          {formData.emailVerified ? (
-                            <Badge colorScheme="green" variant="solid">
-                              Vérifié
-                            </Badge>
-                          ) : (
-                            <Badge colorScheme="orange" variant="solid">
-                              En attente
-                            </Badge>
-                          )}
-                        </HStack>
-                        
-                        {!formData.emailVerified && (
-                          <VStack spacing={3} w="full">
-                            <HStack spacing={2} w="full">
-                              <Input
-                                placeholder="Code de vérification"
-                                value={formData.emailCode}
-                                onChange={(e) => handleInputChange('emailCode', e.target.value)}
-                                maxLength={6}
-                              />
-                              <Button
-                                colorScheme="teal"
-                                onClick={verifyEmailCode}
-                                isDisabled={formData.emailCode.length !== 6}
-                              >
-                                Vérifier
-                              </Button>
-                            </HStack>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={sendEmailCode}
-                              w="full"
-                            >
-                              Renvoyer le code
-                            </Button>
-                          </VStack>
-                        )}
-                      </VStack>
-                      
-                      {/* Vérification SMS */}
-                      <VStack spacing={4} w="full" p={4} border="1px solid" borderColor="gray.200" borderRadius="lg">
-                        <HStack justify="space-between" w="full">
-                          <VStack align="start" spacing={1}>
-                            <Text fontWeight="semibold" color="gray.700">
-                              Vérification SMS
-                            </Text>
-                            <Text fontSize="sm" color="gray.500">
-                              {formData.phone}
-                            </Text>
-                          </VStack>
-                          {formData.smsVerified ? (
-                            <Badge colorScheme="green" variant="solid">
-                              Vérifié
-                            </Badge>
-                          ) : (
-                            <Badge colorScheme="orange" variant="solid">
-                              En attente
-                            </Badge>
-                          )}
-                        </HStack>
-                        
-                        {!formData.smsVerified && (
-                          <VStack spacing={3} w="full">
-                            <HStack spacing={2} w="full">
-                              <Input
-                                placeholder="Code de vérification"
-                                value={formData.smsCode}
-                                onChange={(e) => handleInputChange('smsCode', e.target.value)}
-                                maxLength={6}
-                              />
-                              <Button
-                                colorScheme="teal"
-                                onClick={verifySmsCode}
-                                isDisabled={formData.smsCode.length !== 6}
-                              >
-                                Vérifier
-                              </Button>
-                            </HStack>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={sendSmsCode}
-                              w="full"
-                            >
-                              Renvoyer le code
-                            </Button>
-                          </VStack>
-                        )}
-                      </VStack>
-                      
-                      <Alert status="info" borderRadius="lg">
-                        <AlertIcon />
-                        <Box>
-                          <AlertTitle>Codes de test</AlertTitle>
-                          <AlertDescription>
-                            Pour les tests, utilisez n'importe quel code de 6 chiffres (ex: 123456)
-                          </AlertDescription>
-                        </Box>
-                      </Alert>
+                      <Text color="gray.600">
+                        Veuillez cliquer sur le lien reçu pour activer votre compte et pouvoir vous connecter.
+                      </Text>
+                      <Text color="gray.500" fontSize="sm">
+                        Pensez à vérifier vos spams ou courriers indésirables si vous ne voyez pas l'email.
+                      </Text>
+                      <Button
+                        colorScheme="teal"
+                        variant="solid"
+                        size="md"
+                        onClick={() => router.push('/login')}
+                      >
+                        Accéder à la page de connexion
+                      </Button>
+                      <Text color="gray.400" fontSize="sm">
+                        Vous allez être redirigé automatiquement dans quelques secondes...
+                      </Text>
                     </VStack>
                   </MotionBox>
                 )}
 
                 {/* Navigation */}
-                <HStack spacing={4} w="full" justify="space-between">
-                  <Button
-                    variant="ghost"
-                    onClick={handlePrevious}
-                    isDisabled={currentStep === 1}
-                    leftIcon={<FaArrowLeft />}
-                  >
-                    Précédent
-                  </Button>
-                  
-                  {currentStep < totalSteps ? (
+                {currentStep < totalSteps && (
+                  <HStack spacing={4} w="full" justify="space-between">
                     <Button
-                      colorScheme={plan.color}
-                      onClick={handleNext}
-                      isDisabled={!canProceed()}
+                      variant="ghost"
+                      onClick={handlePrevious}
+                      isDisabled={currentStep === 1}
+                      leftIcon={<FaArrowLeft />}
                     >
-                      Suivant
+                      Précédent
                     </Button>
-                  ) : (
-                    <Button
-                      colorScheme={plan.color}
-                      onClick={handleSubmit}
-                      isLoading={isLoading}
-                      loadingText="Inscription..."
-                      isDisabled={!canProceed()}
-                    >
-                      Créer mon compte
-                    </Button>
-                  )}
-                </HStack>
+                    
+                    {currentStep < 3 ? (
+                      <Button
+                        colorScheme={plan.color}
+                        onClick={handleNext}
+                        isDisabled={!canProceed()}
+                      >
+                        Suivant
+                      </Button>
+                    ) : (
+                      <Button
+                        colorScheme={plan.color}
+                        onClick={handleSubmit}
+                        isLoading={isLoading}
+                        loadingText="Inscription..."
+                        isDisabled={!canProceed()}
+                      >
+                        Créer mon compte
+                      </Button>
+                    )}
+                  </HStack>
+                )}
               </VStack>
             </CardBody>
           </Card>

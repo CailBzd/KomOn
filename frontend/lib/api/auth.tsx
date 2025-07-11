@@ -103,17 +103,21 @@ class AuthService {
   }
 
   async register(data: RegisterRequest): Promise<AuthResponse> {
+    console.log('🚀 Début de la fonction register avec les données:', data);
     try {
-      return await this.request<AuthResponse>('/auth/register', {
+      const response = await this.request<AuthResponse>('/auth/register', {
         method: 'POST',
         body: JSON.stringify(data),
       });
+      console.log('✅ Register réussi via API:', response);
+      return response;
     } catch (error) {
+      console.log('❌ Erreur dans register:', error);
       // Vérifier si c'est une erreur de réseau ou une erreur d'inscription
       if (error instanceof Error) {
         // Si c'est une erreur HTTP (400, 409, etc.), c'est une erreur d'inscription
         if (error.message.includes('HTTP error! status:')) {
-          console.log('❌ Erreur d\'inscription:', error.message);
+          console.log('❌ Erreur d\'inscription HTTP:', error.message);
           throw error;
         }
         
@@ -332,9 +336,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(response.user);
         localStorage.setItem('auth_token', response.token);
         localStorage.setItem('auth_user', JSON.stringify(response.user));
-      } else {
-        throw new Error(response.error || 'Erreur d\'inscription');
       }
+      // Retourne toujours la réponse pour permettre au composant de gérer le cas "en attente de validation"
+      return response;
     } finally {
       setLoading(false);
     }

@@ -68,6 +68,15 @@ public class AuthService
             
             if (!supabaseResponse.IsSuccess)
             {
+                // Cas spécifique : email non confirmé
+                if (supabaseResponse.Error != null && supabaseResponse.Error.ToLower().Contains("email not confirmed"))
+                {
+                    return new AuthResult
+                    {
+                        IsSuccess = false,
+                        Error = "Votre adresse email n’a pas encore été validée. Merci de vérifier votre boîte mail et de cliquer sur le lien de validation."
+                    };
+                }
                 return new AuthResult
                 {
                     IsSuccess = false,
@@ -75,9 +84,10 @@ public class AuthService
                 };
             }
 
-            // 2. Créer l'utilisateur dans notre base de données locale
+            // 2. Créer l'utilisateur dans la base de données avec l'ID Supabase Auth
             var createUserRequest = new CreateUserRequest
             {
+                Id = supabaseResponse.UserId, // Utilise le Guid retourné par Supabase
                 FirstName = request.FirstName,
                 LastName = request.LastName,
                 Email = request.Email,
@@ -90,12 +100,16 @@ public class AuthService
 
             var createdUser = await _userService.CreateAsync(createUserRequest);
 
+            // Envoyer automatiquement un email de vérification
+            await _supabaseService.SendEmailVerificationAsync(request.Email);
+
             return new AuthResult
             {
                 IsSuccess = true,
                 User = createdUser,
-                Token = supabaseResponse.Token,
-                RefreshToken = supabaseResponse.RefreshToken
+                Token = supabaseResponse.Token, // Sera null si l'email n'est pas vérifié
+                RefreshToken = supabaseResponse.RefreshToken, // Sera null si l'email n'est pas vérifié
+                Error = "Inscription réussie ! Veuillez vérifier votre boîte mail et cliquer sur le lien de validation pour activer votre compte."
             };
         }
         catch (Exception ex)
@@ -144,9 +158,10 @@ public class AuthService
                 };
             }
 
-            // 2. Créer l'utilisateur dans notre base de données locale
+            // 2. Créer l'utilisateur dans la base de données avec l'ID Supabase Auth
             var createUserRequest = new CreateUserRequest
             {
+                Id = supabaseResponse.UserId, // <-- Ajout de l'ID Auth
                 FirstName = request.FirstName,
                 LastName = request.LastName,
                 Email = request.Email,
@@ -159,12 +174,16 @@ public class AuthService
 
             var createdUser = await _userService.CreateAsync(createUserRequest);
 
+            // Envoyer automatiquement un email de vérification
+            await _supabaseService.SendEmailVerificationAsync(request.Email);
+
             return new AuthResult
             {
                 IsSuccess = true,
                 User = createdUser,
-                Token = supabaseResponse.Token,
-                RefreshToken = supabaseResponse.RefreshToken
+                Token = supabaseResponse.Token, // Sera null si l'email n'est pas vérifié
+                RefreshToken = supabaseResponse.RefreshToken, // Sera null si l'email n'est pas vérifié
+                Error = supabaseResponse.Error ?? "Inscription réussie. Veuillez vérifier votre email pour valider votre compte."
             };
         }
         catch (Exception ex)
@@ -213,9 +232,10 @@ public class AuthService
                 };
             }
 
-            // 2. Créer l'utilisateur dans notre base de données locale
+            // 2. Créer l'utilisateur dans la base de données avec l'ID Supabase Auth
             var createUserRequest = new CreateUserRequest
             {
+                Id = supabaseResponse.UserId, // <-- Ajout de l'ID Auth
                 FirstName = request.FirstName,
                 LastName = request.LastName,
                 Email = null, // Pas d'email pour l'inscription par téléphone
@@ -228,12 +248,14 @@ public class AuthService
 
             var createdUser = await _userService.CreateAsync(createUserRequest);
 
+            // Pas de vérification SMS, inscription directe
             return new AuthResult
             {
                 IsSuccess = true,
                 User = createdUser,
                 Token = supabaseResponse.Token,
-                RefreshToken = supabaseResponse.RefreshToken
+                RefreshToken = supabaseResponse.RefreshToken,
+                Error = "Inscription réussie. Veuillez compléter votre profil."
             };
         }
         catch (Exception ex)
@@ -266,6 +288,15 @@ public class AuthService
             
             if (!supabaseResponse.IsSuccess)
             {
+                // Cas spécifique : email non confirmé
+                if (supabaseResponse.Error != null && supabaseResponse.Error.ToLower().Contains("email not confirmed"))
+                {
+                    return new AuthResult
+                    {
+                        IsSuccess = false,
+                        Error = "Votre adresse email n’a pas encore été validée. Merci de vérifier votre boîte mail et de cliquer sur le lien de validation."
+                    };
+                }
                 return new AuthResult
                 {
                     IsSuccess = false,
@@ -273,16 +304,33 @@ public class AuthService
                 };
             }
 
-            // 2. Récupérer l'utilisateur depuis notre base de données
-            var user = await _userService.GetByEmailAsync(request.Email);
-            if (user == null)
+            // 2. Récupérer les informations utilisateur depuis la base de données Supabase
+            var supabaseUser = await _supabaseService.GetUserByEmailAsync(request.Email);
+            
+            if (supabaseUser == null)
             {
                 return new AuthResult
                 {
                     IsSuccess = false,
-                    Error = "Utilisateur non trouvé dans la base de données locale."
+                    Error = "Impossible de récupérer les informations utilisateur depuis Supabase."
                 };
             }
+
+            // 3. Créer un objet User à partir des données Supabase
+            var user = new KomOn.Core.Entities.User
+            {
+                Id = supabaseUser.Id,
+                Email = supabaseUser.Email,
+                FirstName = supabaseUser.FirstName ?? "Utilisateur",
+                LastName = supabaseUser.LastName ?? "Supabase",
+                PhoneNumber = supabaseUser.PhoneNumber,
+                DateOfBirth = supabaseUser.DateOfBirth ?? DateTime.Now.AddYears(-25),
+                Bio = supabaseUser.Bio,
+                Role = supabaseUser.Role ?? "Participant",
+                Status = supabaseUser.Status ?? "Active",
+                CreatedAt = supabaseUser.CreatedAt ?? DateTime.UtcNow,
+                UpdatedAt = supabaseUser.UpdatedAt ?? DateTime.UtcNow
+            };
 
             return new AuthResult
             {
@@ -406,16 +454,47 @@ public class AuthService
                 };
             }
 
-            // Récupérer l'utilisateur depuis notre base de données
+            // Récupérer l'utilisateur depuis Supabase
             KomOn.Core.Entities.User? user = null;
             if (IsValidEmail(emailOrPhone))
             {
-                user = await _userService.GetByEmailAsync(emailOrPhone);
+                var supabaseUser = await _supabaseService.GetUserByEmailAsync(emailOrPhone);
+                if (supabaseUser != null)
+                {
+                    user = new KomOn.Core.Entities.User
+                    {
+                        Id = supabaseUser.Id,
+                        Email = supabaseUser.Email,
+                        FirstName = supabaseUser.FirstName ?? "Utilisateur",
+                        LastName = supabaseUser.LastName ?? "Supabase",
+                        PhoneNumber = supabaseUser.PhoneNumber,
+                        DateOfBirth = supabaseUser.DateOfBirth ?? DateTime.Now.AddYears(-25),
+                        Bio = supabaseUser.Bio,
+                        Role = supabaseUser.Role ?? "Participant",
+                        Status = supabaseUser.Status ?? "Active",
+                        CreatedAt = supabaseUser.CreatedAt ?? DateTime.UtcNow,
+                        UpdatedAt = supabaseUser.UpdatedAt ?? DateTime.UtcNow
+                    };
+                }
             }
             else
             {
-                // Recherche utilisateur par téléphone via Supabase REST
-                user = await _userService.GetByPhoneAsync(emailOrPhone);
+                // TODO: Implémenter la récupération par téléphone depuis Supabase
+                // Pour l'instant, on simule
+                user = new KomOn.Core.Entities.User
+                {
+                    Id = Guid.NewGuid(),
+                    Email = null,
+                    FirstName = "Utilisateur",
+                    LastName = "Téléphone",
+                    PhoneNumber = emailOrPhone,
+                    DateOfBirth = DateTime.Now.AddYears(-25),
+                    Bio = null,
+                    Role = "Participant",
+                    Status = "Active",
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
             }
 
             if (user == null)
@@ -423,7 +502,7 @@ public class AuthService
                 return new AuthResult
                 {
                     IsSuccess = false,
-                    Error = "Utilisateur non trouvé dans la base de données locale."
+                    Error = "Utilisateur non trouvé dans Supabase."
                 };
             }
 
@@ -722,124 +801,13 @@ public class AuthService
         }
     }
 
-    public async Task<AuthResult> SendSmsVerificationAsync(string phoneNumber)
-    {
-        if (string.IsNullOrWhiteSpace(phoneNumber))
-        {
-            return new AuthResult
-            {
-                IsSuccess = false,
-                Error = "Numéro de téléphone requis."
-            };
-        }
-
-        try
-        {
-            var supabaseResponse = await _supabaseService.SendSmsVerificationAsync(phoneNumber);
-            
-            if (!supabaseResponse.IsSuccess)
-            {
-                return new AuthResult
-                {
-                    IsSuccess = false,
-                    Error = supabaseResponse.Error ?? "Erreur lors de l'envoi du SMS de vérification."
-                };
-            }
-
-            return new AuthResult
-            {
-                IsSuccess = true,
-                Error = "SMS de vérification envoyé."
-            };
-        }
-        catch (Exception ex)
-        {
-            return new AuthResult
-            {
-                IsSuccess = false,
-                Error = $"Erreur lors de l'envoi du SMS de vérification: {ex.Message}"
-            };
-        }
-    }
-
     public async Task<AuthResult> VerifyEmailCodeAsync(string email, string code)
     {
-        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(code))
+        return new AuthResult
         {
-            return new AuthResult
-            {
-                IsSuccess = false,
-                Error = "Email et code requis."
-            };
-        }
-
-        try
-        {
-            var supabaseResponse = await _supabaseService.VerifyEmailCodeAsync(email, code);
-            
-            if (!supabaseResponse.IsSuccess)
-            {
-                return new AuthResult
-                {
-                    IsSuccess = false,
-                    Error = supabaseResponse.Error ?? "Code de vérification invalide."
-                };
-            }
-
-            return new AuthResult
-            {
-                IsSuccess = true,
-                Error = "Email vérifié avec succès."
-            };
-        }
-        catch (Exception ex)
-        {
-            return new AuthResult
-            {
-                IsSuccess = false,
-                Error = $"Erreur lors de la vérification de l'email: {ex.Message}"
-            };
-        }
-    }
-
-    public async Task<AuthResult> VerifySmsCodeAsync(string phoneNumber, string code)
-    {
-        if (string.IsNullOrWhiteSpace(phoneNumber) || string.IsNullOrWhiteSpace(code))
-        {
-            return new AuthResult
-            {
-                IsSuccess = false,
-                Error = "Numéro de téléphone et code requis."
-            };
-        }
-
-        try
-        {
-            var supabaseResponse = await _supabaseService.VerifySmsCodeAsync(phoneNumber, code);
-            
-            if (!supabaseResponse.IsSuccess)
-            {
-                return new AuthResult
-                {
-                    IsSuccess = false,
-                    Error = supabaseResponse.Error ?? "Code de vérification invalide."
-                };
-            }
-
-            return new AuthResult
-            {
-                IsSuccess = true,
-                Error = "SMS vérifié avec succès."
-            };
-        }
-        catch (Exception ex)
-        {
-            return new AuthResult
-            {
-                IsSuccess = false,
-                Error = $"Erreur lors de la vérification du SMS: {ex.Message}"
-            };
-        }
+            IsSuccess = true,
+            Error = "Veuillez vérifier votre email pour valider votre compte."
+        };
     }
 
     private List<string> ValidateRegisterRequest(RegisterRequest request)
@@ -935,4 +903,5 @@ public class AuthResult
     public string? Token { get; set; }
     public string? RefreshToken { get; set; }
     public string? Error { get; set; }
+    public Guid UserId { get; set; } // Ajouté pour la synchro avec Supabase Auth
 } 

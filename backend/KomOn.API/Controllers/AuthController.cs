@@ -326,41 +326,6 @@ public class AuthController : ControllerBase
 
 
     /// <summary>
-    /// Envoyer un code de vérification par SMS
-    /// </summary>
-    [HttpPost("send-sms-verification")]
-    public async Task<ActionResult<AuthResponse>> SendSmsVerification([FromBody] SendSmsVerificationRequest request)
-    {
-        if (!ModelState.IsValid)
-        {
-            return BadRequest(new AuthResponse
-            {
-                IsSuccess = false,
-                Error = string.Join("; ", ModelState.Values
-                    .SelectMany(v => v.Errors)
-                    .Select(e => e.ErrorMessage))
-            });
-        }
-
-        var result = await _authService.SendSmsVerificationAsync(request.PhoneNumber);
-        
-        if (!result.IsSuccess)
-        {
-            return BadRequest(new AuthResponse
-            {
-                IsSuccess = false,
-                Error = result.Error
-            });
-        }
-
-        return Ok(new AuthResponse
-        {
-            IsSuccess = true,
-            Error = "Code de vérification envoyé par SMS."
-        });
-    }
-
-    /// <summary>
     /// Vérifier le code email
     /// </summary>
     [HttpPost("verify-email")]
@@ -392,41 +357,6 @@ public class AuthController : ControllerBase
         {
             IsSuccess = true,
             Error = "Email vérifié avec succès."
-        });
-    }
-
-    /// <summary>
-    /// Vérifier le code SMS
-    /// </summary>
-    [HttpPost("verify-sms")]
-    public async Task<ActionResult<AuthResponse>> VerifySms([FromBody] VerifySmsCodeRequest request)
-    {
-        if (!ModelState.IsValid)
-        {
-            return BadRequest(new AuthResponse
-            {
-                IsSuccess = false,
-                Error = string.Join("; ", ModelState.Values
-                    .SelectMany(v => v.Errors)
-                    .Select(e => e.ErrorMessage))
-            });
-        }
-
-        var result = await _authService.VerifySmsCodeAsync(request.PhoneNumber, request.Code);
-        
-        if (!result.IsSuccess)
-        {
-            return BadRequest(new AuthResponse
-            {
-                IsSuccess = false,
-                Error = result.Error
-            });
-        }
-
-        return Ok(new AuthResponse
-        {
-            IsSuccess = true,
-            Error = "SMS vérifié avec succès."
         });
     }
 
@@ -655,9 +585,7 @@ public class AuthController : ControllerBase
     [HttpOptions("login-otp")]
     [HttpOptions("verify-otp")]
     [HttpOptions("send-email-verification")]
-    [HttpOptions("send-sms-verification")]
     [HttpOptions("verify-email")]
-    [HttpOptions("verify-sms")]
     [HttpOptions("refresh")]
     [HttpOptions("change-password")]
     [HttpOptions("forgot-password")]

@@ -20,9 +20,10 @@ public class RegisterRequest
 
     [Required(ErrorMessage = "Le mot de passe est requis.")]
     [StringLength(100, MinimumLength = 8, ErrorMessage = "Le mot de passe doit contenir entre 8 et 100 caractères.")]
-    [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]", 
-        ErrorMessage = "Le mot de passe doit contenir au moins une minuscule, une majuscule, un chiffre et un caractère spécial.")]
+    [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&\-])[A-Za-z\d@$!%*?\-]{8,}$",
+     ErrorMessage = "Le mot de passe doit contenir au moins une minuscule, une majuscule, un chiffre et un caractère spécial.")]
     public string Password { get; set; } = string.Empty;
+
 
     [Required(ErrorMessage = "La date de naissance est requise.")]
     public DateTime DateOfBirth { get; set; }
@@ -156,7 +157,7 @@ public class ChangePasswordRequest
 
     [Required(ErrorMessage = "Le nouveau mot de passe est requis.")]
     [StringLength(100, MinimumLength = 8, ErrorMessage = "Le mot de passe doit contenir entre 8 et 100 caractères.")]
-    [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]", 
+    [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&\-])[A-Za-z\d@$!%*?\-\-]",
         ErrorMessage = "Le mot de passe doit contenir au moins une minuscule, une majuscule, un chiffre et un caractère spécial.")]
     public string NewPassword { get; set; } = string.Empty;
 
@@ -179,7 +180,7 @@ public class ResetPasswordRequest
 
     [Required(ErrorMessage = "Le nouveau mot de passe est requis.")]
     [StringLength(100, MinimumLength = 8, ErrorMessage = "Le mot de passe doit contenir entre 8 et 100 caractères.")]
-    [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]", 
+    [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&\-])[A-Za-z\d@$!%*?\-\-]",
         ErrorMessage = "Le mot de passe doit contenir au moins une minuscule, une majuscule, un chiffre et un caractère spécial.")]
     public string NewPassword { get; set; } = string.Empty;
 
@@ -224,4 +225,4 @@ public class VerifySmsCodeRequest
     [StringLength(6, MinimumLength = 6, ErrorMessage = "Le code doit contenir 6 chiffres.")]
     [RegularExpression(@"^\d{6}$", ErrorMessage = "Le code doit contenir exactement 6 chiffres.")]
     public string Code { get; set; } = string.Empty;
-} 
+}

@@ -29,6 +29,7 @@ import { FaSignInAlt, FaArrowLeft } from 'react-icons/fa'
 import Link from 'next/link'
 import { useAuth } from '@/lib/api/auth'
 import { useRouter } from 'next/navigation'
+import { authService } from '@/lib/api/auth'
 
 const MotionBox = motion(Box)
 
@@ -51,6 +52,10 @@ export default function LoginPage() {
   
   const [isLoading, setIsLoading] = useState(false)
   const [loginSuccess, setLoginSuccess] = useState(false)
+  const [waitingEmailValidation, setWaitingEmailValidation] = useState(false)
+  const [showResendValidation, setShowResendValidation] = useState(false)
+  const [resendLoading, setResendLoading] = useState(false)
+  const [resendSuccess, setResendSuccess] = useState(false)
 
   // Redirection si déjà connecté ou après connexion réussie
   useEffect(() => {
@@ -110,6 +115,13 @@ export default function LoginPage() {
         errorMessage = error.message;
       }
       
+      // Vérifier si c'est une erreur d'email non validé (nouveau message backend)
+      if (errorMessage.includes('n’a pas encore été validée')) {
+        setWaitingEmailValidation(true)
+        setShowResendValidation(true)
+        return
+      }
+      
       toast({
         title: 'Erreur de connexion',
         description: errorMessage,
@@ -119,6 +131,25 @@ export default function LoginPage() {
       })
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const handleResendValidation = async () => {
+    setResendLoading(true)
+    setResendSuccess(false)
+    try {
+      await authService.sendEmailVerification(formData.email)
+      setResendSuccess(true)
+    } catch (err) {
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de renvoyer l’email de validation.',
+        status: 'error',
+        duration: 4000,
+        isClosable: true,
+      })
+    } finally {
+      setResendLoading(false)
     }
   }
 
@@ -137,6 +168,73 @@ export default function LoginPage() {
       <Box bg="gray.50" minH="100vh" py={20}>
         <Container maxW="container.sm">
           <Text>Redirection en cours...</Text>
+        </Container>
+      </Box>
+    )
+  }
+
+  if (waitingEmailValidation) {
+    return (
+      <Box bg="gray.50" minH="100vh" py={20}>
+        <Container maxW="container.sm">
+          <VStack spacing={8}>
+            <Alert status="warning" borderRadius="md" boxShadow="md">
+              <AlertIcon />
+              <Box>
+                <AlertTitle color="orange.600">Votre adresse email n’est pas validée</AlertTitle>
+                <AlertDescription color="gray.700">
+                  Merci de vérifier votre boîte mail et de cliquer sur le lien de validation pour activer votre compte.
+                </AlertDescription>
+                {showResendValidation && (
+                  <VStack align="start" mt={4} spacing={2}>
+                    <Button
+                      colorScheme="teal"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleResendValidation}
+                      isLoading={resendLoading}
+                      loadingText="Envoi..."
+                      leftIcon={<FaSignInAlt />}
+                    >
+                      Renvoyer l’email de validation
+                    </Button>
+                    {resendSuccess && (
+                      <Text color="green.600" fontSize="sm">Email de validation renvoyé !</Text>
+                    )}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setWaitingEmailValidation(false)}
+                    >
+                      Réessayer la connexion
+                    </Button>
+                  </VStack>
+                )}
+              </Box>
+            </Alert>
+            <Divider />
+            <Text color="gray.500" fontSize="sm">
+              Pas encore de compte ?{' '}
+              <ChakraLink 
+                href="/signup" 
+                color="teal.500" 
+                fontWeight="semibold"
+                _hover={{ textDecoration: 'underline' }}
+              >
+                S'inscrire gratuitement
+              </ChakraLink>
+            </Text>
+            <Link href="/" passHref>
+              <Button
+                leftIcon={<FaArrowLeft />}
+                variant="ghost"
+                colorScheme="teal"
+                size="sm"
+              >
+                Retour à l'accueil
+              </Button>
+            </Link>
+          </VStack>
         </Container>
       </Box>
     )
