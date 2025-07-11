@@ -5,21 +5,44 @@ using KomOn.Infrastructure.Services;
 using Moq;
 using Xunit;
 using Microsoft.Extensions.Configuration;
+using KomOn.API.DTOs;
+using KomOn.Core.DTOs;
+using Microsoft.Extensions.Options;
+using KomOn.Infrastructure.Configuration;
+using KomOn.API.Services;
 
 namespace KomOn.API.Tests.Services;
 
 public class AuthServiceTests
 {
     private readonly Mock<IUserService> _mockUserService;
+    private readonly Mock<KomOn.Core.Interfaces.IAuthService> _mockAuthService;
+    private readonly Mock<SupabaseService> _mockSupabaseService;
     private readonly Mock<IConfiguration> _mockConfig;
-    private readonly AuthService _authService;
+    private readonly KomOn.API.Services.AuthService _authService;
 
     public AuthServiceTests()
     {
         _mockUserService = new Mock<IUserService>();
+        _mockAuthService = new Mock<KomOn.Core.Interfaces.IAuthService>();
+        
+        // Créer un mock pour SupabaseService avec les dépendances nécessaires
+        var mockSupabaseSettings = new Mock<IOptions<SupabaseSettings>>();
+        mockSupabaseSettings.Setup(x => x.Value).Returns(new SupabaseSettings
+        {
+            Url = "https://test.supabase.co",
+            Key = "test-key",
+            ServiceRoleKey = "test-service-role-key"
+        });
+        
+        _mockSupabaseService = new Mock<SupabaseService>(mockSupabaseSettings.Object);
         _mockConfig = new Mock<IConfiguration>();
-        _mockConfig.Setup(x => x[It.IsAny<string>()]).Returns("your-super-secret-key-with-at-least-32-characters-for-jwt-signing");
-        _authService = new AuthService(_mockUserService.Object, _mockConfig.Object);
+        
+        _mockConfig.Setup(x => x["Jwt:Secret"]).Returns("your-super-secret-key-with-at-least-32-characters-for-jwt-signing");
+        _mockConfig.Setup(x => x["Jwt:Issuer"]).Returns("KomOn");
+        _mockConfig.Setup(x => x["Jwt:Audience"]).Returns("KomOnUsers");
+        
+        _authService = new KomOn.API.Services.AuthService(_mockUserService.Object, _mockAuthService.Object, _mockSupabaseService.Object, _mockConfig.Object);
     }
 
     [Fact]
@@ -44,13 +67,17 @@ public class AuthServiceTests
             DateOfBirth = registerRequest.DateOfBirth
         };
 
-        _mockUserService.Setup(x => x.GetUserByEmailAsync(registerRequest.Email))
-            .ReturnsAsync((User?)null);
+        var supabaseResponse = new KomOn.Infrastructure.Services.AuthResult
+        {
+            IsSuccess = true,
+            Token = "supabase-jwt-token",
+            RefreshToken = "refresh-token"
+        };
 
-        _mockUserService.Setup(x => x.CreateUserAsync(It.IsAny<User>(), registerRequest.Password))
-            .ReturnsAsync(createdUser);
+        _mockSupabaseService.Setup(x => x.SignUpAsync(registerRequest.Email, registerRequest.Password, It.IsAny<Dictionary<string, object>>()))
+            .ReturnsAsync(supabaseResponse);
 
-        _mockUserService.Setup(x => x.GetUserByIdAsync(createdUser.Id))
+        _mockUserService.Setup(x => x.CreateAsync(It.IsAny<CreateUserRequest>()))
             .ReturnsAsync(createdUser);
 
         // Act
@@ -61,33 +88,34 @@ public class AuthServiceTests
         result.IsSuccess.Should().BeTrue();
         result.User.Should().NotBeNull();
         result.User!.Email.Should().Be(registerRequest.Email);
-        result.Token.Should().NotBeNullOrEmpty();
+        result.Token.Should().Be("supabase-jwt-token");
+        result.RefreshToken.Should().Be("refresh-token");
 
-        _mockUserService.Verify(x => x.GetUserByEmailAsync(registerRequest.Email), Times.Once);
-        _mockUserService.Verify(x => x.CreateUserAsync(It.IsAny<User>(), registerRequest.Password), Times.Once);
+        _mockSupabaseService.Verify(x => x.SignUpAsync(registerRequest.Email, registerRequest.Password, It.IsAny<Dictionary<string, object>>()), Times.Once);
+        _mockUserService.Verify(x => x.CreateAsync(It.IsAny<CreateUserRequest>()), Times.Once);
     }
 
     [Fact]
-    public async Task RegisterAsync_WithExistingEmail_ShouldReturnErrorResult()
+    public async Task RegisterAsync_WithSupabaseError_ShouldReturnErrorResult()
     {
         // Arrange
         var registerRequest = new RegisterRequest
         {
             FirstName = "John",
             LastName = "Doe",
-            Email = "existing@example.com",
+            Email = "john.doe@example.com",
             Password = "Password123!",
             DateOfBirth = new DateTime(1990, 1, 1)
         };
 
-        var existingUser = new User
+        var supabaseResponse = new KomOn.Infrastructure.Services.AuthResult
         {
-            Id = Guid.NewGuid(),
-            Email = registerRequest.Email
+            IsSuccess = false,
+            Error = "Email already exists"
         };
 
-        _mockUserService.Setup(x => x.GetUserByEmailAsync(registerRequest.Email))
-            .ReturnsAsync(existingUser);
+        _mockSupabaseService.Setup(x => x.SignUpAsync(registerRequest.Email, registerRequest.Password, It.IsAny<Dictionary<string, object>>()))
+            .ReturnsAsync(supabaseResponse);
 
         // Act
         var result = await _authService.RegisterAsync(registerRequest);
@@ -95,12 +123,12 @@ public class AuthServiceTests
         // Assert
         result.Should().NotBeNull();
         result.IsSuccess.Should().BeFalse();
-        result.Error.Should().Be("Un utilisateur avec cet email existe déjà.");
+        result.Error.Should().Be("Email already exists");
         result.User.Should().BeNull();
         result.Token.Should().BeNullOrEmpty();
 
-        _mockUserService.Verify(x => x.GetUserByEmailAsync(registerRequest.Email), Times.Once);
-        _mockUserService.Verify(x => x.CreateUserAsync(It.IsAny<User>(), It.IsAny<string>()), Times.Never);
+        _mockSupabaseService.Verify(x => x.SignUpAsync(registerRequest.Email, registerRequest.Password, It.IsAny<Dictionary<string, object>>()), Times.Once);
+        _mockUserService.Verify(x => x.CreateAsync(It.IsAny<CreateUserRequest>()), Times.Never);
     }
 
     [Fact]
@@ -121,13 +149,17 @@ public class AuthServiceTests
             LastName = "Doe"
         };
 
-        _mockUserService.Setup(x => x.GetUserByEmailAsync(loginRequest.Email))
-            .ReturnsAsync(user);
+        var supabaseResponse = new KomOn.Infrastructure.Services.AuthResult
+        {
+            IsSuccess = true,
+            Token = "supabase-jwt-token",
+            RefreshToken = "refresh-token"
+        };
 
-        _mockUserService.Setup(x => x.ValidateUserCredentialsAsync(loginRequest.Email, loginRequest.Password))
-            .ReturnsAsync(true);
+        _mockSupabaseService.Setup(x => x.SignInAsync(loginRequest.Email, loginRequest.Password))
+            .ReturnsAsync(supabaseResponse);
 
-        _mockUserService.Setup(x => x.GetUserByIdAsync(user.Id))
+        _mockUserService.Setup(x => x.GetByEmailAsync(loginRequest.Email))
             .ReturnsAsync(user);
 
         // Act
@@ -138,10 +170,11 @@ public class AuthServiceTests
         result.IsSuccess.Should().BeTrue();
         result.User.Should().NotBeNull();
         result.User!.Email.Should().Be(loginRequest.Email);
-        result.Token.Should().NotBeNullOrEmpty();
+        result.Token.Should().Be("supabase-jwt-token");
+        result.RefreshToken.Should().Be("refresh-token");
 
-        _mockUserService.Verify(x => x.GetUserByEmailAsync(loginRequest.Email), Times.Once);
-        _mockUserService.Verify(x => x.ValidateUserCredentialsAsync(loginRequest.Email, loginRequest.Password), Times.Once);
+        _mockSupabaseService.Verify(x => x.SignInAsync(loginRequest.Email, loginRequest.Password), Times.Once);
+        _mockUserService.Verify(x => x.GetByEmailAsync(loginRequest.Email), Times.Once);
     }
 
     [Fact]
@@ -154,17 +187,14 @@ public class AuthServiceTests
             Password = "WrongPassword"
         };
 
-        var user = new User
+        var supabaseResponse = new KomOn.Infrastructure.Services.AuthResult
         {
-            Id = Guid.NewGuid(),
-            Email = loginRequest.Email
+            IsSuccess = false,
+            Error = "Invalid credentials"
         };
 
-        _mockUserService.Setup(x => x.GetUserByEmailAsync(loginRequest.Email))
-            .ReturnsAsync(user);
-
-        _mockUserService.Setup(x => x.ValidateUserCredentialsAsync(loginRequest.Email, loginRequest.Password))
-            .ReturnsAsync(false);
+        _mockSupabaseService.Setup(x => x.SignInAsync(loginRequest.Email, loginRequest.Password))
+            .ReturnsAsync(supabaseResponse);
 
         // Act
         var result = await _authService.LoginAsync(loginRequest);
@@ -172,39 +202,12 @@ public class AuthServiceTests
         // Assert
         result.Should().NotBeNull();
         result.IsSuccess.Should().BeFalse();
-        result.Error.Should().Be("Email ou mot de passe incorrect.");
+        result.Error.Should().Be("Invalid credentials");
         result.User.Should().BeNull();
         result.Token.Should().BeNullOrEmpty();
 
-        _mockUserService.Verify(x => x.GetUserByEmailAsync(loginRequest.Email), Times.Once);
-        _mockUserService.Verify(x => x.ValidateUserCredentialsAsync(loginRequest.Email, loginRequest.Password), Times.Once);
-    }
-
-    [Fact]
-    public async Task LoginAsync_WithNonExistentUser_ShouldReturnErrorResult()
-    {
-        // Arrange
-        var loginRequest = new LoginRequest
-        {
-            Email = "nonexistent@example.com",
-            Password = "Password123!"
-        };
-
-        _mockUserService.Setup(x => x.GetUserByEmailAsync(loginRequest.Email))
-            .ReturnsAsync((User?)null);
-
-        // Act
-        var result = await _authService.LoginAsync(loginRequest);
-
-        // Assert
-        result.Should().NotBeNull();
-        result.IsSuccess.Should().BeFalse();
-        result.Error.Should().Be("Email ou mot de passe incorrect.");
-        result.User.Should().BeNull();
-        result.Token.Should().BeNullOrEmpty();
-
-        _mockUserService.Verify(x => x.GetUserByEmailAsync(loginRequest.Email), Times.Once);
-        _mockUserService.Verify(x => x.ValidateUserCredentialsAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        _mockSupabaseService.Verify(x => x.SignInAsync(loginRequest.Email, loginRequest.Password), Times.Once);
+        _mockUserService.Verify(x => x.GetByEmailAsync(It.IsAny<string>()), Times.Never);
     }
 
     [Theory]

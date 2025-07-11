@@ -7,6 +7,7 @@ public interface IUserService
 {
     Task<User?> GetByIdAsync(Guid id);
     Task<User?> GetByEmailAsync(string email);
+    Task<User?> GetByPhoneAsync(string phoneNumber);
     Task<IEnumerable<User>> GetAllAsync();
     Task<User> CreateAsync(CreateUserRequest request);
     Task<User> UpdateAsync(Guid id, UpdateUserRequest request);

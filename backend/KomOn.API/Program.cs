@@ -1,7 +1,12 @@
+using Microsoft.EntityFrameworkCore;
+using KomOn.Infrastructure.Data;
 using KomOn.Core.Interfaces;
 using KomOn.Infrastructure.Services;
-using KomOn.Core.DTOs;
+using KomOn.API.Services;
 using KomOn.Infrastructure.Configuration;
+using KomOn.Core.DTOs;
+using AutoMapper;
+using KomOn.API.Mapping;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,157 +17,157 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Configuration Supabase
-builder.Services.Configure<SupabaseSettings>(builder.Configuration.GetSection("Supabase"));
-builder.Services.AddSingleton<SupabaseService>();
-builder.Services.AddScoped<SupabaseMigrationService>();
+// Configuration
+builder.Services.Configure<SupabaseSettings>(
+    builder.Configuration.GetSection("Supabase"));
+
+// Database
+// builder.Services.AddDbContext<KomOnDbContext>(options =>
+//     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Services
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IAuthService, KomOn.Infrastructure.Services.AuthService>();
+builder.Services.AddScoped<KomOn.API.Services.AuthService>();
+builder.Services.AddScoped<SupabaseService>();
+builder.Services.AddScoped<EventService>();
+builder.Services.AddScoped<PaymentService>();
+
+// AutoMapper
+builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 // CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.WithOrigins("http://localhost:3000", "https://localhost:3000")
+        policy.AllowAnyOrigin()
               .AllowAnyMethod()
-              .AllowAnyHeader()
-              .AllowCredentials();
+              .AllowAnyHeader();
     });
 });
-
-// AutoMapper
-builder.Services.AddAutoMapper(typeof(Program));
-
-// Services
-builder.Services.AddScoped<IEventService, EventService>();
-builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<IPaymentService, PaymentService>();
-builder.Services.AddScoped<KomOn.API.Services.AuthService>();
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-// Swagger toujours activé pour la documentation API
-app.UseSwagger();
-app.UseSwaggerUI();
-
-// CORS doit être configuré AVANT UseHttpsRedirection pour éviter les redirections sur les requêtes preflight
-app.UseCors("AllowAll");
-
 if (app.Environment.IsDevelopment())
 {
-    // Configuration spécifique au développement si nécessaire
-    // Désactiver la redirection HTTPS en développement pour éviter les problèmes CORS
-}
-else
-{
-    // HTTPS redirection seulement en production
-    app.UseHttpsRedirection();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
-app.UseAuthentication();
+app.UseHttpsRedirection();
+
+// CORS doit être avant les autres middlewares
+app.UseCors("AllowAll");
+
+// Middleware pour vérifier les JWT Supabase
+app.Use(async (context, next) =>
+{
+    var path = context.Request.Path.Value;
+    
+    // Endpoints qui ne nécessitent pas d'authentification
+    var publicEndpoints = new[]
+    {
+        "/api/auth/register",
+        "/api/auth/register-email",
+        "/api/auth/register-phone",
+        "/api/auth/login",
+        "/api/auth/login-magic-link",
+        "/api/auth/login-otp",
+        "/api/auth/verify-otp",
+        "/api/auth/send-email-verification",
+        "/api/auth/send-sms-verification",
+        "/api/auth/verify-email",
+        "/api/auth/verify-sms",
+        "/api/auth/forgot-password",
+        "/api/auth/reset-password"
+    };
+
+    // Vérifier si c'est un endpoint public
+    if (publicEndpoints.Any(ep => path?.StartsWith(ep) == true))
+    {
+        await next();
+        return;
+    }
+
+    // Vérifier si c'est une requête OPTIONS (CORS preflight)
+    if (context.Request.Method == "OPTIONS")
+    {
+        await next();
+        return;
+    }
+
+    // Vérifier l'autorisation pour les autres endpoints
+    var authHeader = context.Request.Headers["Authorization"].FirstOrDefault();
+    if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+    {
+        context.Response.StatusCode = 401;
+        await context.Response.WriteAsync("Token d'authentification requis");
+        return;
+    }
+
+    var token = authHeader.Substring("Bearer ".Length);
+    
+    // TODO: Implémenter la vérification du JWT Supabase
+    // Pour l'instant, on accepte tous les tokens
+    // var supabaseService = context.RequestServices.GetRequiredService<SupabaseService>();
+    // var isValid = await supabaseService.ValidateTokenAsync(token);
+    // if (!isValid)
+    // {
+    //     context.Response.StatusCode = 401;
+    //     await context.Response.WriteAsync("Token invalide");
+    //     return;
+    // }
+
+    await next();
+});
+
 app.UseAuthorization();
 
 app.MapControllers();
 
-// Exécuter les migrations Supabase au démarrage
+// Créer les comptes de test au démarrage
 using (var scope = app.Services.CreateScope())
 {
-    try
-    {
-        var migrationService = scope.ServiceProvider.GetRequiredService<SupabaseMigrationService>();
-        await migrationService.RunMigrationsAsync();
-        Console.WriteLine("✅ Migrations Supabase exécutées avec succès");
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"⚠️ Erreur lors des migrations Supabase: {ex.Message}");
-    }
-}
-
-// Initialisation des comptes de test
-using (var scope = app.Services.CreateScope())
-{
-    try
-    {
-        var userService = scope.ServiceProvider.GetRequiredService<IUserService>();
-        await InitializeSuperAdminAsync(userService);
-        await InitializeTestUserAsync(userService);
-        Console.WriteLine("✅ Comptes de test initialisés avec succès");
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"⚠️ Erreur lors de l'initialisation des comptes de test: {ex.Message}");
-    }
-}
-
-// Global exception handler
-// app.UseMiddleware<ExceptionHandlingMiddleware>(); // TODO: Décommenter si le middleware existe
-
-app.Run();
-
-// Méthode pour initialiser le compte super-admin
-static async Task InitializeSuperAdminAsync(IUserService userService)
-{
-    const string superAdminEmail = "admin@komon.com";
-    const string superAdminPassword = "Admin123!";
+    var userService = scope.ServiceProvider.GetRequiredService<IUserService>();
     
-    // Vérifier si le super-admin existe déjà
-    var existingUser = await userService.GetByEmailAsync(superAdminEmail);
-    
-    if (existingUser == null)
+    // Vérifier si les comptes de test existent déjà
+    var adminUser = await userService.GetByEmailAsync("admin@komon.com");
+    if (adminUser == null)
     {
-        // Créer le compte super-admin
-        var createRequest = new CreateUserRequest
+        var createAdminRequest = new CreateUserRequest
         {
-            FirstName = "Super",
-            LastName = "Admin",
-            Email = superAdminEmail,
-            Password = superAdminPassword,
-            Role = "admin",
+            FirstName = "Admin",
+            LastName = "KomOn",
+            Email = "admin@komon.com",
             DateOfBirth = new DateTime(1990, 1, 1),
             PhoneNumber = "+33123456789",
-            Bio = "Compte super-administrateur de KomOn"
+            Bio = "Administrateur de KomOn",
+            Password = "Admin123!",
+            Role = "Admin"
         };
-        
-        var superAdmin = await userService.CreateAsync(createRequest);
-        Console.WriteLine($"🎯 Super-admin créé: {superAdmin.Email} (ID: {superAdmin.Id})");
+        await userService.CreateAsync(createAdminRequest);
+        Console.WriteLine("✅ Compte admin créé: admin@komon.com / Admin123!");
     }
-    else
-    {
-        Console.WriteLine($"ℹ️ Super-admin existe déjà: {existingUser.Email}");
-    }
-}
 
-// Méthode pour initialiser un utilisateur de test
-static async Task InitializeTestUserAsync(IUserService userService)
-{
-    const string testUserEmail = "test@komon.com";
-    const string testUserPassword = "Test123!";
-    
-    // Vérifier si l'utilisateur de test existe déjà
-    var existingUser = await userService.GetByEmailAsync(testUserEmail);
-    
-    if (existingUser == null)
+    var testUser = await userService.GetByEmailAsync("test@komon.com");
+    if (testUser == null)
     {
-        // Créer l'utilisateur de test
-        var createRequest = new CreateUserRequest
+        var createTestRequest = new CreateUserRequest
         {
             FirstName = "Test",
             LastName = "User",
-            Email = testUserEmail,
-            Password = testUserPassword,
-            Role = "participant",
+            Email = "test@komon.com",
             DateOfBirth = new DateTime(1995, 5, 15),
-            PhoneNumber = "+33123456788",
-            Bio = "Compte utilisateur de test pour KomOn"
+            PhoneNumber = "+33987654321",
+            Bio = "Utilisateur de test",
+            Password = "Test123!",
+            Role = "Participant"
         };
-        
-        var testUser = await userService.CreateAsync(createRequest);
-        Console.WriteLine($"🎯 Utilisateur de test créé: {testUser.Email} (ID: {testUser.Id})");
+        await userService.CreateAsync(createTestRequest);
+        Console.WriteLine("✅ Compte test créé: test@komon.com / Test123!");
     }
-    else
-    {
-        Console.WriteLine($"ℹ️ Utilisateur de test existe déjà: {existingUser.Email}");
-    }
-} 
+}
+
+app.Run(); 

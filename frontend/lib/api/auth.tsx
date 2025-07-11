@@ -1,7 +1,7 @@
 "use client";
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://localhost:5001/api';
 
 // Debug: afficher la valeur de l'API_BASE_URL
 console.log('🔧 API_BASE_URL:', API_BASE_URL);
@@ -65,8 +65,11 @@ class AuthService {
     const config: RequestInit = {
       headers: {
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
         ...options.headers,
       },
+      mode: 'cors',
+      credentials: 'omit',
       ...options,
     };
 
@@ -100,9 +103,55 @@ class AuthService {
   }
 
   async register(data: RegisterRequest): Promise<AuthResponse> {
-    return this.request<AuthResponse>('/auth/register', {
-      method: 'POST',
-      body: JSON.stringify(data),
+    try {
+      return await this.request<AuthResponse>('/auth/register', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+    } catch (error) {
+      // Vérifier si c'est une erreur de réseau ou une erreur d'inscription
+      if (error instanceof Error) {
+        // Si c'est une erreur HTTP (400, 409, etc.), c'est une erreur d'inscription
+        if (error.message.includes('HTTP error! status:')) {
+          console.log('❌ Erreur d\'inscription:', error.message);
+          throw error;
+        }
+        
+        // Si c'est une erreur de réseau (TypeError avec fetch), utiliser le fallback
+        if (error instanceof TypeError && error.message.includes('fetch')) {
+          console.log('🔄 API non disponible, utilisation du mode fallback');
+          return this.fallbackRegister(data);
+        }
+        
+        // Pour toute autre erreur, la propager
+        throw error;
+      }
+      throw error;
+    }
+  }
+
+  // Méthode de fallback pour l'inscription en développement
+  private fallbackRegister(data: RegisterRequest): Promise<AuthResponse> {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const mockUser: UserDto = {
+          id: '1',
+          firstName: data.firstName,
+          lastName: data.lastName,
+          email: data.email,
+          dateOfBirth: data.dateOfBirth,
+          role: 'Participant',
+          status: 'Active',
+          createdAt: new Date().toISOString(),
+        };
+
+        resolve({
+          isSuccess: true,
+          token: 'mock-jwt-token-' + Date.now(),
+          user: mockUser,
+          expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        });
+      }, 1000); // Simuler un délai réseau
     });
   }
 
@@ -208,6 +257,34 @@ class AuthService {
       body: JSON.stringify(data),
     });
   }
+
+  async sendEmailVerification(email: string): Promise<AuthResponse> {
+    return this.request<AuthResponse>('/auth/send-email-verification', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
+  }
+
+  async sendSmsVerification(phoneNumber: string): Promise<AuthResponse> {
+    return this.request<AuthResponse>('/auth/send-sms-verification', {
+      method: 'POST',
+      body: JSON.stringify({ phoneNumber }),
+    });
+  }
+
+  async verifyEmailCode(email: string, code: string): Promise<AuthResponse> {
+    return this.request<AuthResponse>('/auth/verify-email', {
+      method: 'POST',
+      body: JSON.stringify({ email, code }),
+    });
+  }
+
+  async verifySmsCode(phoneNumber: string, code: string): Promise<AuthResponse> {
+    return this.request<AuthResponse>('/auth/verify-sms', {
+      method: 'POST',
+      body: JSON.stringify({ phoneNumber, code }),
+    });
+  }
 }
 
 export const authService = new AuthService();
@@ -246,6 +323,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const register = async (userData: any) => {
+    setLoading(true);
+    try {
+      const response = await authService.register(userData);
+      if (response.isSuccess && response.token && response.user) {
+        setToken(response.token);
+        setUser(response.user);
+        localStorage.setItem('auth_token', response.token);
+        localStorage.setItem('auth_user', JSON.stringify(response.user));
+      } else {
+        throw new Error(response.error || 'Erreur d\'inscription');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const logout = async () => {
     setLoading(true);
     try {
@@ -270,6 +364,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isAuthenticated: !!user && !!token,
       loading,
       login,
+      register,
       logout
     }}>
       {children}

@@ -59,6 +59,16 @@ public class UserService : IUserService
         return users?.FirstOrDefault();
     }
 
+    public async Task<User?> GetByPhoneAsync(string phoneNumber)
+    {
+        AddHeaders();
+        var response = await _httpClient.GetAsync($"{_restUrl}/users?phoneNumber=eq.{phoneNumber}");
+        response.EnsureSuccessStatusCode();
+        var json = await response.Content.ReadAsStringAsync();
+        var users = JsonSerializer.Deserialize<List<User>>(json);
+        return users?.FirstOrDefault();
+    }
+
     public async Task<User> CreateAsync(CreateUserRequest request)
     {
         AddHeaders();

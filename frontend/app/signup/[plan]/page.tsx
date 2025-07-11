@@ -30,6 +30,8 @@ import { motion } from 'framer-motion'
 import { FaCrown, FaHandshake, FaUsers, FaArrowLeft } from 'react-icons/fa'
 import SportSelection from '@/components/SportSelection'
 import Link from 'next/link'
+import { useAuth } from '@/lib/api/auth'
+import { useRouter } from 'next/navigation'
 
 const MotionBox = motion(Box)
 
@@ -46,11 +48,16 @@ interface FormData {
   lastName: string
   email: string
   phone: string
+  dateOfBirth: string
   password: string
   confirmPassword: string
   acceptTerms: boolean
   acceptNewsletter: boolean
   selectedSports: SelectedSport[]
+  emailCode: string
+  smsCode: string
+  emailVerified: boolean
+  smsVerified: boolean
 }
 
 const plans = {
@@ -77,22 +84,36 @@ const plans = {
 export default function SignUpFormPage({ params }: { params: { plan: string } }) {
   const plan = plans[params.plan as keyof typeof plans]
   const toast = useToast()
+  const { register, isAuthenticated, loading } = useAuth()
+  const router = useRouter()
+  const authService = require('@/lib/api/auth').authService
   
   const [formData, setFormData] = useState<FormData>({
     firstName: '',
     lastName: '',
     email: '',
     phone: '',
+    dateOfBirth: '',
     password: '',
     confirmPassword: '',
     acceptTerms: false,
     acceptNewsletter: false,
-    selectedSports: []
+    selectedSports: [],
+    emailCode: '',
+    smsCode: '',
+    emailVerified: false,
+    smsVerified: false
   })
   
   const [isLoading, setIsLoading] = useState(false)
   const [currentStep, setCurrentStep] = useState(1)
-  const totalSteps = 3
+  const totalSteps = 4
+
+  // Redirection si déjà connecté
+  if (isAuthenticated && !loading) {
+    router.replace('/dashboard')
+    return null
+  }
 
   if (!plan) {
     return (
@@ -121,14 +142,126 @@ export default function SignUpFormPage({ params }: { params: { plan: string } })
     handleInputChange('selectedSports', sports)
   }
 
+  const sendEmailCode = async () => {
+    try {
+      await authService.sendEmailVerification(formData.email)
+      toast({
+        title: 'Code envoyé !',
+        description: 'Vérifiez votre boîte email.',
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      })
+    } catch (error) {
+      toast({
+        title: 'Erreur',
+        description: 'Impossible d\'envoyer le code email.',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      })
+    }
+  }
+
+  const sendSmsCode = async () => {
+    try {
+      await authService.sendSmsVerification(formData.phone)
+      toast({
+        title: 'Code envoyé !',
+        description: 'Vérifiez votre téléphone.',
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      })
+    } catch (error) {
+      toast({
+        title: 'Erreur',
+        description: 'Impossible d\'envoyer le code SMS.',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      })
+    }
+  }
+
+  const verifyEmailCode = async () => {
+    try {
+      await authService.verifyEmailCode(formData.email, formData.emailCode)
+      handleInputChange('emailVerified', true)
+      toast({
+        title: 'Email vérifié !',
+        description: 'Votre email a été vérifié avec succès.',
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      })
+    } catch (error) {
+      toast({
+        title: 'Code invalide',
+        description: 'Le code de vérification est incorrect.',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      })
+    }
+  }
+
+  const verifySmsCode = async () => {
+    try {
+      await authService.verifySmsCode(formData.phone, formData.smsCode)
+      handleInputChange('smsVerified', true)
+      toast({
+        title: 'SMS vérifié !',
+        description: 'Votre téléphone a été vérifié avec succès.',
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      })
+    } catch (error) {
+      toast({
+        title: 'Code invalide',
+        description: 'Le code de vérification est incorrect.',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      })
+    }
+  }
+
   const validateStep1 = () => {
-    const { firstName, lastName, email, phone } = formData
-    return firstName.trim() && lastName.trim() && email.trim() && phone.trim()
+    const { firstName, lastName, email, phone, dateOfBirth } = formData
+    return firstName.trim() && lastName.trim() && email.trim() && phone.trim() && dateOfBirth.trim()
   }
 
   const validateStep2 = () => {
     const { password, confirmPassword } = formData
-    return password.length >= 8 && password === confirmPassword
+    
+    // Validation du mot de passe selon les règles backend
+    const hasMinLength = password.length >= 8
+    const hasLowercase = /[a-z]/.test(password)
+    const hasUppercase = /[A-Z]/.test(password)
+    const hasNumber = /\d/.test(password)
+    const hasSpecialChar = /[@$!%*?&]/.test(password)
+    const passwordsMatch = password === confirmPassword
+    
+    return hasMinLength && hasLowercase && hasUppercase && hasNumber && hasSpecialChar && passwordsMatch
+  }
+
+  const getPasswordValidationStatus = () => {
+    const { password } = formData
+    if (!password) return { isValid: false, errors: [] }
+    
+    const errors = []
+    if (password.length < 8) errors.push('Au moins 8 caractères')
+    if (!/[a-z]/.test(password)) errors.push('Au moins une minuscule')
+    if (!/[A-Z]/.test(password)) errors.push('Au moins une majuscule')
+    if (!/\d/.test(password)) errors.push('Au moins un chiffre')
+    if (!/[@$!%*?&]/.test(password)) errors.push('Au moins un caractère spécial (@$!%*?&)')
+    
+    return {
+      isValid: errors.length === 0,
+      errors
+    }
   }
 
   const validateStep3 = () => {
@@ -136,11 +269,17 @@ export default function SignUpFormPage({ params }: { params: { plan: string } })
     return acceptTerms && selectedSports.length > 0
   }
 
+  const validateStep4 = () => {
+    const { emailVerified, smsVerified } = formData
+    return emailVerified && smsVerified
+  }
+
   const canProceed = () => {
     switch (currentStep) {
       case 1: return validateStep1()
       case 2: return validateStep2()
       case 3: return validateStep3()
+      case 4: return validateStep4()
       default: return false
     }
   }
@@ -161,24 +300,42 @@ export default function SignUpFormPage({ params }: { params: { plan: string } })
     setIsLoading(true)
     
     try {
-      // TODO: Intégration avec Supabase Auth
-      console.log('Données du formulaire:', formData)
+      // Préparer les données pour l'API
+      const registerData = {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        password: formData.password,
+        dateOfBirth: new Date(formData.dateOfBirth),
+        phoneNumber: formData.phone,
+        bio: `Sports préférés: ${formData.selectedSports.map(s => s.name).join(', ')}`
+      }
+
+      console.log('📝 Données d\'inscription:', registerData)
+      
+      await register(registerData)
       
       toast({
         title: 'Inscription réussie !',
-        description: 'Vérifiez votre email pour confirmer votre compte.',
+        description: 'Votre compte a été créé avec succès.',
         status: 'success',
         duration: 5000,
         isClosable: true,
       })
       
-      // Redirection vers la page de confirmation
-      // router.push('/signup/success')
+      // Redirection vers le dashboard
+      router.push('/dashboard')
       
     } catch (error) {
+      let errorMessage = 'Une erreur est survenue lors de l\'inscription.';
+      
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      
       toast({
         title: 'Erreur lors de l\'inscription',
-        description: 'Veuillez réessayer.',
+        description: errorMessage,
         status: 'error',
         duration: 5000,
         isClosable: true,
@@ -276,6 +433,16 @@ export default function SignUpFormPage({ params }: { params: { plan: string } })
                           placeholder="06 12 34 56 78"
                         />
                       </FormControl>
+                      
+                      <FormControl isRequired>
+                        <FormLabel>Date de naissance</FormLabel>
+                        <Input
+                          type="date"
+                          value={formData.dateOfBirth}
+                          onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
+                          max={new Date().toISOString().split('T')[0]}
+                        />
+                      </FormControl>
                     </VStack>
                   </MotionBox>
                 )}
@@ -299,7 +466,41 @@ export default function SignUpFormPage({ params }: { params: { plan: string } })
                           value={formData.password}
                           onChange={(e) => handleInputChange('password', e.target.value)}
                           placeholder="Minimum 8 caractères"
+                          isInvalid={formData.password ? !getPasswordValidationStatus().isValid : false}
                         />
+                        {formData.password && (
+                          <VStack align="start" spacing={1} mt={2}>
+                            <Text fontSize="sm" fontWeight="semibold" color="gray.600">
+                              Le mot de passe doit contenir :
+                            </Text>
+                            {getPasswordValidationStatus().errors.map((error, index) => (
+                              <HStack key={index} spacing={2}>
+                                <Box
+                                  w={2}
+                                  h={2}
+                                  borderRadius="full"
+                                  bg="red.400"
+                                />
+                                <Text fontSize="xs" color="red.500">
+                                  {error}
+                                </Text>
+                              </HStack>
+                            ))}
+                            {getPasswordValidationStatus().isValid && (
+                              <HStack spacing={2}>
+                                <Box
+                                  w={2}
+                                  h={2}
+                                  borderRadius="full"
+                                  bg="green.400"
+                                />
+                                <Text fontSize="xs" color="green.500" fontWeight="semibold">
+                                  Mot de passe valide
+                                </Text>
+                              </HStack>
+                            )}
+                          </VStack>
+                        )}
                       </FormControl>
                       
                       <FormControl isRequired>
@@ -381,6 +582,137 @@ export default function SignUpFormPage({ params }: { params: { plan: string } })
                           </Checkbox>
                         </FormControl>
                       </VStack>
+                    </VStack>
+                  </MotionBox>
+                )}
+
+                {/* Step 4: Vérification */}
+                {currentStep === 4 && (
+                  <MotionBox
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    w="full"
+                  >
+                    <VStack spacing={6}>
+                      <Heading size="md" color="gray.700">
+                        Vérification de votre compte
+                      </Heading>
+                      
+                      <Text color="gray.600" textAlign="center">
+                        Pour finaliser votre inscription, nous devons vérifier votre email et votre numéro de téléphone.
+                      </Text>
+                      
+                      {/* Vérification Email */}
+                      <VStack spacing={4} w="full" p={4} border="1px solid" borderColor="gray.200" borderRadius="lg">
+                        <HStack justify="space-between" w="full">
+                          <VStack align="start" spacing={1}>
+                            <Text fontWeight="semibold" color="gray.700">
+                              Vérification Email
+                            </Text>
+                            <Text fontSize="sm" color="gray.500">
+                              {formData.email}
+                            </Text>
+                          </VStack>
+                          {formData.emailVerified ? (
+                            <Badge colorScheme="green" variant="solid">
+                              Vérifié
+                            </Badge>
+                          ) : (
+                            <Badge colorScheme="orange" variant="solid">
+                              En attente
+                            </Badge>
+                          )}
+                        </HStack>
+                        
+                        {!formData.emailVerified && (
+                          <VStack spacing={3} w="full">
+                            <HStack spacing={2} w="full">
+                              <Input
+                                placeholder="Code de vérification"
+                                value={formData.emailCode}
+                                onChange={(e) => handleInputChange('emailCode', e.target.value)}
+                                maxLength={6}
+                              />
+                              <Button
+                                colorScheme="teal"
+                                onClick={verifyEmailCode}
+                                isDisabled={formData.emailCode.length !== 6}
+                              >
+                                Vérifier
+                              </Button>
+                            </HStack>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={sendEmailCode}
+                              w="full"
+                            >
+                              Renvoyer le code
+                            </Button>
+                          </VStack>
+                        )}
+                      </VStack>
+                      
+                      {/* Vérification SMS */}
+                      <VStack spacing={4} w="full" p={4} border="1px solid" borderColor="gray.200" borderRadius="lg">
+                        <HStack justify="space-between" w="full">
+                          <VStack align="start" spacing={1}>
+                            <Text fontWeight="semibold" color="gray.700">
+                              Vérification SMS
+                            </Text>
+                            <Text fontSize="sm" color="gray.500">
+                              {formData.phone}
+                            </Text>
+                          </VStack>
+                          {formData.smsVerified ? (
+                            <Badge colorScheme="green" variant="solid">
+                              Vérifié
+                            </Badge>
+                          ) : (
+                            <Badge colorScheme="orange" variant="solid">
+                              En attente
+                            </Badge>
+                          )}
+                        </HStack>
+                        
+                        {!formData.smsVerified && (
+                          <VStack spacing={3} w="full">
+                            <HStack spacing={2} w="full">
+                              <Input
+                                placeholder="Code de vérification"
+                                value={formData.smsCode}
+                                onChange={(e) => handleInputChange('smsCode', e.target.value)}
+                                maxLength={6}
+                              />
+                              <Button
+                                colorScheme="teal"
+                                onClick={verifySmsCode}
+                                isDisabled={formData.smsCode.length !== 6}
+                              >
+                                Vérifier
+                              </Button>
+                            </HStack>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={sendSmsCode}
+                              w="full"
+                            >
+                              Renvoyer le code
+                            </Button>
+                          </VStack>
+                        )}
+                      </VStack>
+                      
+                      <Alert status="info" borderRadius="lg">
+                        <AlertIcon />
+                        <Box>
+                          <AlertTitle>Codes de test</AlertTitle>
+                          <AlertDescription>
+                            Pour les tests, utilisez n'importe quel code de 6 chiffres (ex: 123456)
+                          </AlertDescription>
+                        </Box>
+                      </Alert>
                     </VStack>
                   </MotionBox>
                 )}

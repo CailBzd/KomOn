@@ -91,7 +91,7 @@ KomOn/
 #### **Frontend (.env.local)**
 ```bash
 # API Backend
-NEXT_PUBLIC_API_URL=http://localhost:5000/api
+NEXT_PUBLIC_API_URL=https://localhost:5001/api
 
 # Stripe
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...

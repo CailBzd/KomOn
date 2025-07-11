@@ -18,12 +18,12 @@ public class AuthService : IAuthService
     public async Task<string?> LoginAsync(string email, string password)
     {
         var signInResult = await _supabaseService.SignInAsync(email, password);
-        if (!signInResult)
+        if (!signInResult.IsSuccess)
             return null;
         // Optionnel : récupérer l'utilisateur en base pour infos supplémentaires
         // var user = await _userService.GetByEmailAsync(email);
         // Pour l'instant, on retourne un token factice car SupabaseService simule les appels
-        return $"supabase_token_for_{email}";
+        return signInResult.Token ?? $"supabase_token_for_{email}";
     }
 
     public async Task<bool> ValidateTokenAsync(string token)
