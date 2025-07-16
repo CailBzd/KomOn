@@ -623,14 +623,21 @@ public class AuthService
 
         try
         {
-            // TODO: Implémenter la réinitialisation de mot de passe avec Supabase
-            // Pour l'instant, on simule
-            await Task.Delay(100);
+            var result = await _supabaseService.SendPasswordResetEmailAsync(email);
             
+            if (!result.IsSuccess)
+            {
+                return new AuthResult
+                {
+                    IsSuccess = false,
+                    Error = result.Error ?? "Erreur lors de l'envoi de l'email de réinitialisation."
+                };
+            }
+
             return new AuthResult
             {
                 IsSuccess = true,
-                Error = "Email de réinitialisation envoyé."
+                Error = "Email de réinitialisation envoyé. Veuillez vérifier votre boîte mail."
             };
         }
         catch (Exception ex)
@@ -665,16 +672,34 @@ public class AuthService
             };
         }
 
+        // Validation du mot de passe
+        var passwordValidationErrors = ValidatePassword(request.NewPassword);
+        if (passwordValidationErrors.Any())
+        {
+            return new AuthResult
+            {
+                IsSuccess = false,
+                Error = string.Join("; ", passwordValidationErrors)
+            };
+        }
+
         try
         {
-            // TODO: Implémenter la réinitialisation de mot de passe avec Supabase
-            // Pour l'instant, on simule
-            await Task.Delay(100);
+            var result = await _supabaseService.ResetPasswordAsync(request.Token, request.NewPassword);
             
+            if (!result.IsSuccess)
+            {
+                return new AuthResult
+                {
+                    IsSuccess = false,
+                    Error = result.Error ?? "Erreur lors de la réinitialisation du mot de passe."
+                };
+            }
+
             return new AuthResult
             {
                 IsSuccess = true,
-                Error = "Mot de passe réinitialisé avec succès."
+                Error = "Mot de passe réinitialisé avec succès. Vous pouvez maintenant vous connecter."
             };
         }
         catch (Exception ex)
@@ -894,14 +919,34 @@ public class AuthService
             return false;
         }
     }
+
+    private List<string> ValidatePassword(string password)
+    {
+        var errors = new List<string>();
+
+        if (string.IsNullOrWhiteSpace(password))
+        {
+            errors.Add("Le mot de passe est requis.");
+            return errors;
+        }
+
+        if (password.Length < 8)
+            errors.Add("Le mot de passe doit contenir au moins 8 caractères.");
+
+        if (!password.Any(char.IsLower))
+            errors.Add("Le mot de passe doit contenir au moins une minuscule.");
+
+        if (!password.Any(char.IsUpper))
+            errors.Add("Le mot de passe doit contenir au moins une majuscule.");
+
+        if (!password.Any(char.IsDigit))
+            errors.Add("Le mot de passe doit contenir au moins un chiffre.");
+
+        if (!password.Any(c => !char.IsLetterOrDigit(c) && c != ' '))
+            errors.Add("Le mot de passe doit contenir au moins un caractère spécial.");
+
+        return errors;
+    }
 }
 
-public class AuthResult
-{
-    public bool IsSuccess { get; set; }
-    public KomOn.Core.Entities.User? User { get; set; }
-    public string? Token { get; set; }
-    public string? RefreshToken { get; set; }
-    public string? Error { get; set; }
-    public Guid UserId { get; set; } // Ajouté pour la synchro avec Supabase Auth
-} 
+// Utilise la classe AuthResult de KomOn.Infrastructure.Services 

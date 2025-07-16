@@ -357,6 +357,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(null);
       localStorage.removeItem('auth_token');
       localStorage.removeItem('auth_user');
+      // Effacer aussi les données "Se souvenir de moi" lors de la déconnexion
+      localStorage.removeItem('komon_remembered_email');
+      localStorage.removeItem('komon_remember_me');
       setLoading(false);
     }
   }

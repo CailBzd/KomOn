@@ -169,7 +169,8 @@ public class UserService : IUserService
         if (user == null) return false;
         user.ProfilePictureUrl = imageUrl;
         user.UpdatedAt = DateTime.UtcNow;
-        return (await UpdateAsync(id, new UpdateUserRequest { })) != null;
+        var result = await UpdateAsync(id, new UpdateUserRequest { });
+        return result != null;
     }
 
     public async Task<bool> UpdateCreditBalanceAsync(Guid id, decimal amount)

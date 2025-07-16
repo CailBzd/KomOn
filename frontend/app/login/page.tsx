@@ -10,6 +10,8 @@ import {
   FormControl,
   FormLabel,
   Input,
+  InputGroup,
+  InputRightElement,
   Button,
   Checkbox,
   Link as ChakraLink,
@@ -25,7 +27,7 @@ import {
 } from '@chakra-ui/react'
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { FaSignInAlt, FaArrowLeft } from 'react-icons/fa'
+import { FaSignInAlt, FaArrowLeft, FaEye, FaEyeSlash } from 'react-icons/fa'
 import Link from 'next/link'
 import { useAuth } from '@/lib/api/auth'
 import { useRouter } from 'next/navigation'
@@ -56,6 +58,28 @@ export default function LoginPage() {
   const [showResendValidation, setShowResendValidation] = useState(false)
   const [resendLoading, setResendLoading] = useState(false)
   const [resendSuccess, setResendSuccess] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [emailLoadedFromMemory, setEmailLoadedFromMemory] = useState(false)
+
+  // Charger les données sauvegardées au montage du composant
+  useEffect(() => {
+    const savedEmail = localStorage.getItem('komon_remembered_email');
+    const savedRememberMe = localStorage.getItem('komon_remember_me') === 'true';
+    
+    if (savedEmail && savedRememberMe) {
+      setFormData(prev => ({
+        ...prev,
+        email: savedEmail,
+        rememberMe: true
+      }));
+      setEmailLoadedFromMemory(true);
+      
+      // Masquer l'indicateur après 3 secondes
+      setTimeout(() => {
+        setEmailLoadedFromMemory(false);
+      }, 3000);
+    }
+  }, []);
 
   // Redirection si déjà connecté ou après connexion réussie
   useEffect(() => {
@@ -76,6 +100,12 @@ export default function LoginPage() {
 
   const handleInputChange = (field: keyof LoginData, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }))
+    
+    // Si l'utilisateur décoche "Se souvenir de moi", effacer les données sauvegardées
+    if (field === 'rememberMe' && !value) {
+      localStorage.removeItem('komon_remembered_email');
+      localStorage.removeItem('komon_remember_me');
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -96,6 +126,15 @@ export default function LoginPage() {
     
     try {
       await login({ email: formData.email, password: formData.password, rememberMe: formData.rememberMe })
+      
+      // Gérer "Se souvenir de moi"
+      if (formData.rememberMe) {
+        localStorage.setItem('komon_remembered_email', formData.email);
+        localStorage.setItem('komon_remember_me', 'true');
+      } else {
+        localStorage.removeItem('komon_remembered_email');
+        localStorage.removeItem('komon_remember_me');
+      }
       
       toast({
         title: 'Connexion réussie !',
@@ -270,32 +309,70 @@ export default function LoginPage() {
                       onChange={(e) => handleInputChange('email', e.target.value)}
                       placeholder="votre@email.com"
                       size="lg"
+                      _focus={{
+                        borderColor: 'teal.500',
+                        boxShadow: '0 0 0 1px var(--chakra-colors-teal-500)'
+                      }}
+                      borderColor={emailLoadedFromMemory ? 'green.300' : undefined}
+                      bg={emailLoadedFromMemory ? 'green.50' : undefined}
                     />
+                    {emailLoadedFromMemory && (
+                      <Text fontSize="xs" color="green.600" mt={1}>
+                        ✓ Email chargé depuis la mémoire
+                      </Text>
+                    )}
                   </FormControl>
                   
                   <FormControl isRequired>
                     <FormLabel>Mot de passe</FormLabel>
-                    <Input
-                      type="password"
-                      value={formData.password}
-                      onChange={(e) => handleInputChange('password', e.target.value)}
-                      placeholder="Votre mot de passe"
-                      size="lg"
-                    />
+                    <InputGroup size="lg">
+                      <Input
+                        type={showPassword ? 'text' : 'password'}
+                        value={formData.password}
+                        onChange={(e) => handleInputChange('password', e.target.value)}
+                        placeholder="Votre mot de passe"
+                        _focus={{
+                          borderColor: 'teal.500',
+                          boxShadow: '0 0 0 1px var(--chakra-colors-teal-500)'
+                        }}
+                      />
+                      <InputRightElement>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setShowPassword(!showPassword)}
+                          _hover={{ bg: 'transparent' }}
+                        >
+                          {showPassword ? <FaEyeSlash /> : <FaEye />}
+                        </Button>
+                      </InputRightElement>
+                    </InputGroup>
                   </FormControl>
                   
-                  <HStack justify="space-between" w="full">
-                    <Checkbox
-                      isChecked={formData.rememberMe}
-                      onChange={(e) => handleInputChange('rememberMe', e.target.checked)}
-                    >
-                      Se souvenir de moi
-                    </Checkbox>
+                  <HStack justify="space-between" w="full" align="start">
+                    <VStack align="start" spacing={1}>
+                      <Checkbox
+                        isChecked={formData.rememberMe}
+                        onChange={(e) => handleInputChange('rememberMe', e.target.checked)}
+                        colorScheme="teal"
+                        size="md"
+                      >
+                        <Text fontSize="sm" fontWeight="medium">
+                          Se souvenir de moi
+                        </Text>
+                      </Checkbox>
+                      {formData.rememberMe && (
+                        <Text fontSize="xs" color="gray.500" ml={6}>
+                          Votre email sera sauvegardé pour la prochaine connexion
+                        </Text>
+                      )}
+                    </VStack>
                     
                     <ChakraLink 
                       href="/forgot-password" 
                       color="teal.500" 
                       fontSize="sm"
+                      fontWeight="medium"
                       _hover={{ textDecoration: 'underline' }}
                     >
                       Mot de passe oublié ?

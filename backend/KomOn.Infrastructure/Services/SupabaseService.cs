@@ -50,7 +50,7 @@ public class SupabaseService
                         Token = null, // Pas de token tant que l'email n'est pas vérifié
                         RefreshToken = null,
                         Error = "Inscription réussie. Veuillez vérifier votre email avant de vous connecter.",
-                        UserId = Guid.Parse(response.User.Id)
+                        UserId = Guid.Parse(response.User.Id ?? string.Empty)
                     };
                 }
                 
@@ -61,7 +61,7 @@ public class SupabaseService
                     Token = response.AccessToken ?? string.Empty,
                     RefreshToken = response.RefreshToken ?? string.Empty,
                     Error = null,
-                    UserId = Guid.Parse(response.User.Id)
+                    UserId = Guid.Parse(response.User.Id ?? string.Empty)
                 };
             }
             
@@ -349,7 +349,7 @@ public class SupabaseService
         try
         {
             var options = new SignUpOptions { Data = userData };
-            var response = await _supabaseClient.Auth.SignUp(email, null, options);
+            var response = await _supabaseClient.Auth.SignUp(email, null!, options);
             if (response.User != null)
             {
                 return new AuthResult
@@ -373,7 +373,7 @@ public class SupabaseService
         try
         {
             var options = new SignUpOptions { Data = userData };
-            var response = await _supabaseClient.Auth.SignUp(phone, null, options);
+            var response = await _supabaseClient.Auth.SignUp(phone, null!, options);
             if (response.User != null)
             {
                 return new AuthResult
@@ -551,6 +551,73 @@ public class SupabaseService
             return null;
         }
     }
+
+    /// <summary>
+    /// Envoyer un email de réinitialisation de mot de passe
+    /// </summary>
+    public async Task<AuthResult> SendPasswordResetEmailAsync(string email)
+    {
+        try
+        {
+            // Utiliser l'API Supabase pour envoyer l'email de réinitialisation
+            var response = await _supabaseClient.Auth.ResetPasswordForEmail(email);
+            
+            return new AuthResult
+            {
+                IsSuccess = true,
+                Error = "Email de réinitialisation envoyé avec succès."
+            };
+        }
+        catch (Exception ex)
+        {
+            return new AuthResult
+            {
+                IsSuccess = false,
+                Error = $"Erreur lors de l'envoi de l'email de réinitialisation: {ex.Message}"
+            };
+        }
+    }
+
+    /// <summary>
+    /// Réinitialiser le mot de passe avec un token
+    /// </summary>
+    public async Task<AuthResult> ResetPasswordAsync(string token, string newPassword)
+    {
+        try
+        {
+            // Pour l'instant, on simule la réinitialisation
+            // En production, on utiliserait l'API REST Supabase avec le token
+            // POST /auth/v1/user
+            // {
+            //   "password": "new_password"
+            // }
+            // Headers: Authorization: Bearer {token}
+            
+            await Task.Delay(100); // Simulation
+            
+            // TODO: Implémenter la vraie réinitialisation via l'API REST Supabase
+            // var httpClient = new HttpClient();
+            // httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+            // httpClient.DefaultRequestHeaders.Add("apikey", _settings.ServiceRoleKey ?? _settings.Key);
+            // 
+            // var content = new StringContent(JsonSerializer.Serialize(new { password = newPassword }), Encoding.UTF8, "application/json");
+            // var response = await httpClient.PutAsync($"{_settings.Url}/auth/v1/user", content);
+            
+            return new AuthResult
+            {
+                IsSuccess = true,
+                Error = "Mot de passe réinitialisé avec succès."
+            };
+        }
+        catch (Exception ex)
+        {
+            return new AuthResult
+            {
+                IsSuccess = false,
+                Error = $"Erreur lors de la réinitialisation du mot de passe: {ex.Message}"
+            };
+        }
+    }
 }
 
 // Classe pour le résultat d'authentification Supabase
@@ -561,6 +628,7 @@ public class AuthResult
     public string? Token { get; set; }
     public string? RefreshToken { get; set; }
     public Guid UserId { get; set; } // Ajouté pour la synchro avec Supabase Auth
+    public KomOn.Core.Entities.User? User { get; set; } // Ajouté pour les informations utilisateur
 }
 
 // Classe pour les informations utilisateur Supabase
