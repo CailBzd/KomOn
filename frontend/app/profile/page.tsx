@@ -289,7 +289,7 @@ export default function ProfilePage() {
         firstName: profileData.firstName,
         lastName: profileData.lastName,
         phoneNumber: profileData.phoneNumber,
-        dateOfBirth: profileData.dateOfBirth ? new Date(profileData.dateOfBirth + 'T00:00:00') : undefined,
+        dateOfBirth: profileData.dateOfBirth || undefined,
         bio: profileData.bio
       })
 

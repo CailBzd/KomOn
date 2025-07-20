@@ -305,7 +305,7 @@ class AuthService {
     firstName?: string;
     lastName?: string;
     phoneNumber?: string;
-    dateOfBirth?: Date;
+    dateOfBirth?: string;
     bio?: string;
   }): Promise<AuthResponse> {
     const token = localStorage.getItem('auth_token');

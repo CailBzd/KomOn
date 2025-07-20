@@ -242,7 +242,7 @@ public class UpdateProfileRequest
     [StringLength(20, ErrorMessage = "Le numéro de téléphone ne peut pas dépasser 20 caractères.")]
     public string? PhoneNumber { get; set; }
 
-    public DateTime? DateOfBirth { get; set; }
+    public string? DateOfBirth { get; set; }
 
     [StringLength(500, ErrorMessage = "La bio ne peut pas dépasser 500 caractères.")]
     public string? Bio { get; set; }

@@ -93,13 +93,19 @@ public class UserController : ControllerBase
             }
 
             // Convertir le DTO de l'API vers le DTO du Core
+            DateTime? dateOfBirth = null;
+            if (!string.IsNullOrEmpty(request.DateOfBirth) && DateTime.TryParse(request.DateOfBirth, out var parsedDate))
+            {
+                dateOfBirth = parsedDate;
+            }
+
             var coreRequest = new CoreDTOs.UpdateProfileRequest
             {
                 Username = request.Username,
                 FirstName = request.FirstName,
                 LastName = request.LastName,
                 PhoneNumber = request.PhoneNumber,
-                DateOfBirth = request.DateOfBirth,
+                DateOfBirth = dateOfBirth,
                 Bio = request.Bio
             };
 

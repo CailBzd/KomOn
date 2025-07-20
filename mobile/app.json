@@ -22,8 +22,7 @@
       },
       "package": "com.komon.mobile"
     },
-    "web": {
-    },
+    "web": {},
     "plugins": [
       "expo-location",
       "expo-notifications",
@@ -32,7 +31,8 @@
         {
           "photosPermission": "L'application accède à vos photos pour vous permettre de sélectionner une image de profil."
         }
-      ]
+      ],
+      "expo-secure-store"
     ]
   }
-} 
+}
