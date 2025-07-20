@@ -10,6 +10,7 @@ console.log('🔧 process.env.NEXT_PUBLIC_API_URL:', process.env.NEXT_PUBLIC_API
 // Types pour TypeScript
 export interface UserDto {
   id: string;
+  username: string;
   firstName: string;
   lastName: string;
   email: string;
@@ -29,6 +30,7 @@ export interface LoginRequest {
 }
 
 export interface RegisterRequest {
+  username: string;
   firstName: string;
   lastName: string;
   email: string;
@@ -140,6 +142,7 @@ class AuthService {
       setTimeout(() => {
         const mockUser: UserDto = {
           id: '1',
+          username: data.username,
           firstName: data.firstName,
           lastName: data.lastName,
           email: data.email,
@@ -193,6 +196,7 @@ class AuthService {
       setTimeout(() => {
         const mockUser: UserDto = {
           id: '1',
+          username: 'demo_user',
           firstName: 'Utilisateur',
           lastName: 'Demo',
           email: data.email,
@@ -233,16 +237,7 @@ class AuthService {
     });
   }
 
-  async changePassword(data: {
-    currentPassword: string;
-    newPassword: string;
-    confirmPassword: string;
-  }): Promise<AuthResponse> {
-    return this.request<AuthResponse>('/auth/change-password', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-  }
+  // Méthode changePassword déplacée vers le profil
 
   async forgotPassword(email: string): Promise<AuthResponse> {
     return this.request<AuthResponse>('/auth/forgot-password', {
@@ -287,6 +282,77 @@ class AuthService {
     return this.request<AuthResponse>('/auth/verify-sms', {
       method: 'POST',
       body: JSON.stringify({ phoneNumber, code }),
+    });
+  }
+
+  // Méthodes pour la gestion du profil
+  async getProfile(): Promise<AuthResponse> {
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+      throw new Error('Token d\'authentification requis');
+    }
+    
+    return this.request<AuthResponse>('/user/profile', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+  }
+
+  async updateProfile(data: {
+    username?: string;
+    firstName?: string;
+    lastName?: string;
+    phoneNumber?: string;
+    dateOfBirth?: Date;
+    bio?: string;
+  }): Promise<AuthResponse> {
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+      throw new Error('Token d\'authentification requis');
+    }
+    
+    return this.request<AuthResponse>('/user/profile', {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateProfilePicture(data: { imageUrl: string }): Promise<AuthResponse> {
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+      throw new Error('Token d\'authentification requis');
+    }
+    
+    return this.request<AuthResponse>('/user/profile/picture', {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+    });
+  }
+
+  async changePassword(data: {
+    currentPassword: string;
+    newPassword: string;
+    confirmPassword: string;
+  }): Promise<AuthResponse> {
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+      throw new Error('Token d\'authentification requis');
+    }
+    
+    return this.request<AuthResponse>('/user/profile/password', {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
     });
   }
 }
@@ -364,6 +430,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  const updateUser = (updatedUser: any) => {
+    setUser(updatedUser);
+    localStorage.setItem('auth_user', JSON.stringify(updatedUser));
+  }
+
   return (
     <AuthContext.Provider value={{
       user,
@@ -372,7 +443,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       loading,
       login,
       register,
-      logout
+      logout,
+      updateUser
     }}>
       {children}
     </AuthContext.Provider>

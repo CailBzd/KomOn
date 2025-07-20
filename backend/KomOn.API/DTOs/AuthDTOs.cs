@@ -5,6 +5,11 @@ namespace KomOn.API.DTOs;
 
 public class RegisterRequest
 {
+    [Required(ErrorMessage = "Le pseudo est requis.")]
+    [StringLength(50, ErrorMessage = "Le pseudo ne peut pas dépasser 50 caractères.")]
+    [RegularExpression(@"^[a-zA-Z0-9_-]+$", ErrorMessage = "Le pseudo ne peut contenir que des lettres, chiffres, tirets et underscores.")]
+    public string Username { get; set; } = string.Empty;
+
     [Required(ErrorMessage = "Le prénom est requis.")]
     [StringLength(100, ErrorMessage = "Le prénom ne peut pas dépasser 100 caractères.")]
     public string FirstName { get; set; } = string.Empty;
@@ -38,6 +43,11 @@ public class RegisterRequest
 
 public class RegisterEmailRequest
 {
+    [Required(ErrorMessage = "Le pseudo est requis.")]
+    [StringLength(50, ErrorMessage = "Le pseudo ne peut pas dépasser 50 caractères.")]
+    [RegularExpression(@"^[a-zA-Z0-9_-]+$", ErrorMessage = "Le pseudo ne peut contenir que des lettres, chiffres, tirets et underscores.")]
+    public string Username { get; set; } = string.Empty;
+
     [Required(ErrorMessage = "Le prénom est requis.")]
     [StringLength(100, ErrorMessage = "Le prénom ne peut pas dépasser 100 caractères.")]
     public string FirstName { get; set; } = string.Empty;
@@ -60,6 +70,11 @@ public class RegisterEmailRequest
 
 public class RegisterPhoneRequest
 {
+    [Required(ErrorMessage = "Le pseudo est requis.")]
+    [StringLength(50, ErrorMessage = "Le pseudo ne peut pas dépasser 50 caractères.")]
+    [RegularExpression(@"^[a-zA-Z0-9_-]+$", ErrorMessage = "Le pseudo ne peut contenir que des lettres, chiffres, tirets et underscores.")]
+    public string Username { get; set; } = string.Empty;
+
     [Required(ErrorMessage = "Le prénom est requis.")]
     [StringLength(100, ErrorMessage = "Le prénom ne peut pas dépasser 100 caractères.")]
     public string FirstName { get; set; } = string.Empty;
@@ -132,11 +147,12 @@ public class AuthResponse
 public class UserDto
 {
     public Guid Id { get; set; }
+    public string Username { get; set; } = string.Empty;
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public string? PhoneNumber { get; set; }
-    public DateTime DateOfBirth { get; set; }
+    public string DateOfBirth { get; set; } = string.Empty;
     public string? Bio { get; set; }
     public string? ProfilePictureUrl { get; set; }
     public string Role { get; set; } = string.Empty;
@@ -201,6 +217,35 @@ public class SendSmsVerificationRequest
     [Required(ErrorMessage = "Le numéro de téléphone est requis.")]
     [Phone(ErrorMessage = "Le numéro de téléphone n'est pas valide.")]
     public string PhoneNumber { get; set; } = string.Empty;
+}
+
+public class UpdateProfilePictureRequest
+{
+    [Required(ErrorMessage = "L'URL de l'image est requise.")]
+    [Url(ErrorMessage = "L'URL de l'image n'est pas valide.")]
+    public string ImageUrl { get; set; } = string.Empty;
+}
+
+public class UpdateProfileRequest
+{
+    [StringLength(50, ErrorMessage = "Le pseudo ne peut pas dépasser 50 caractères.")]
+    [RegularExpression(@"^[a-zA-Z0-9_-]+$", ErrorMessage = "Le pseudo ne peut contenir que des lettres, chiffres, tirets et underscores.")]
+    public string? Username { get; set; }
+
+    [StringLength(100, ErrorMessage = "Le prénom ne peut pas dépasser 100 caractères.")]
+    public string? FirstName { get; set; }
+
+    [StringLength(100, ErrorMessage = "Le nom ne peut pas dépasser 100 caractères.")]
+    public string? LastName { get; set; }
+
+    [Phone(ErrorMessage = "Le numéro de téléphone n'est pas valide.")]
+    [StringLength(20, ErrorMessage = "Le numéro de téléphone ne peut pas dépasser 20 caractères.")]
+    public string? PhoneNumber { get; set; }
+
+    public DateTime? DateOfBirth { get; set; }
+
+    [StringLength(500, ErrorMessage = "La bio ne peut pas dépasser 500 caractères.")]
+    public string? Bio { get; set; }
 }
 
 public class VerifyEmailCodeRequest

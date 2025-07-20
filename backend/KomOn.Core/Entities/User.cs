@@ -12,6 +12,12 @@ public class User
     [JsonPropertyName("id")]
     public Guid Id { get; set; }
     
+    [Column("username")]
+    [Required]
+    [MaxLength(50)]
+    [JsonPropertyName("username")]
+    public string Username { get; set; } = string.Empty;
+    
     [Column("first_name")]
     [Required]
     [MaxLength(100)]

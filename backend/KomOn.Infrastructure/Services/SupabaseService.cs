@@ -3,6 +3,7 @@ using Microsoft.Extensions.Options;
 using Supabase;
 using Supabase.Gotrue;
 using Supabase.Gotrue.Interfaces;
+using Supabase.Postgrest;
 using SupabaseClient = Supabase.Client;
 
 namespace KomOn.Infrastructure.Services;
@@ -11,10 +12,12 @@ public class SupabaseService
 {
     private readonly SupabaseSettings _settings;
     private readonly SupabaseClient _supabaseClient;
+    // private readonly IUserService _userService; // SUPPRIMÉ
 
-    public SupabaseService(IOptions<SupabaseSettings> settings)
+    public SupabaseService(IOptions<SupabaseSettings> settings) // SUPPRIMER IUserService
     {
         _settings = settings.Value;
+        // _userService = userService; // SUPPRIMÉ
         
         var url = _settings.Url;
         var key = _settings.ServiceRoleKey ?? _settings.Key;
@@ -513,10 +516,10 @@ public class SupabaseService
 
     // Pour la vérification OTP, le SDK .NET ne fournit pas de méthode directe.
     // Il faudrait utiliser l'API REST Supabase ou gérer la vérification côté frontend.
-    public async Task<AuthResult> VerifyOtpAsync(string phoneOrEmail, string code, string type)
+    public Task<AuthResult> VerifyOtpAsync(string phoneOrEmail, string code, string type)
     {
         // À implémenter si besoin via l'API REST Supabase
-        return new AuthResult { IsSuccess = false, Error = "Vérification OTP non supportée en natif par le SDK .NET. Utilisez le frontend ou l'API REST." };
+        return Task.FromResult(new AuthResult { IsSuccess = false, Error = "Vérification OTP non supportée en natif par le SDK .NET. Utilisez le frontend ou l'API REST." });
     }
 
     /// <summary>
@@ -526,28 +529,56 @@ public class SupabaseService
     {
         try
         {
-            // Pour l'instant, on simule la récupération depuis Supabase
-            // TODO: Implémenter la vraie récupération depuis la table users de Supabase
-            await Task.Delay(100);
+            // Utiliser l'API REST Supabase pour interroger la table users
+            using var httpClient = new HttpClient();
+            httpClient.DefaultRequestHeaders.Add("apikey", _settings.ServiceRoleKey ?? _settings.Key);
+            httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_settings.ServiceRoleKey ?? _settings.Key}");
             
-            // Retourner un objet par défaut avec les métadonnées de l'utilisateur
+            var url = $"{_settings.Url}/rest/v1/users?email=eq.{email}&select=id,first_name,last_name,email,phone_number,date_of_birth,bio,profile_picture_url,role,status,created_at,updated_at,username";
+            var response = await httpClient.GetAsync(url);
+            
+            if (!response.IsSuccessStatusCode)
+            {
+                Console.WriteLine($"Erreur API Supabase: {response.StatusCode}");
+                return null;
+            }
+            
+            var jsonContent = await response.Content.ReadAsStringAsync();
+            if (string.IsNullOrEmpty(jsonContent) || jsonContent == "[]")
+            {
+                return null;
+            }
+            
+            // Parser la réponse JSON (simplifié pour l'exemple)
+            // En production, utilisez System.Text.Json.JsonSerializer.Deserialize
+            var userData = System.Text.Json.JsonSerializer.Deserialize<List<Dictionary<string, object>>>(jsonContent);
+            
+            if (userData == null || userData.Count == 0)
+            {
+                return null;
+            }
+            
+            var firstUser = userData[0];
+            
             return new SupabaseUserInfo
             {
-                Id = Guid.NewGuid(),
-                Email = email,
-                FirstName = "Utilisateur",
-                LastName = "Supabase",
-                PhoneNumber = null,
-                DateOfBirth = DateTime.Now.AddYears(-25),
-                Bio = null,
-                Role = "Participant",
-                Status = "Active",
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                Id = Guid.Parse(firstUser["id"]?.ToString() ?? string.Empty),
+                Email = firstUser["email"]?.ToString() ?? string.Empty,
+                Username = firstUser["username"]?.ToString(),
+                FirstName = firstUser["first_name"]?.ToString(),
+                LastName = firstUser["last_name"]?.ToString(),
+                PhoneNumber = firstUser["phone_number"]?.ToString(),
+                DateOfBirth = ParseDateSafely(firstUser["date_of_birth"]),
+                Bio = firstUser["bio"]?.ToString(),
+                Role = firstUser["role"]?.ToString(),
+                Status = firstUser["status"]?.ToString(),
+                CreatedAt = ParseDateTimeSafely(firstUser["created_at"]),
+                UpdatedAt = ParseDateTimeSafely(firstUser["updated_at"])
             };
         }
-        catch
+        catch (Exception ex)
         {
+            Console.WriteLine($"Erreur lors de la récupération de l'utilisateur par email: {ex.Message}");
             return null;
         }
     }
@@ -585,37 +616,209 @@ public class SupabaseService
     {
         try
         {
-            // Pour l'instant, on simule la réinitialisation
-            // En production, on utiliserait l'API REST Supabase avec le token
-            // POST /auth/v1/user
-            // {
-            //   "password": "new_password"
-            // }
-            // Headers: Authorization: Bearer {token}
+            using var httpClient = new HttpClient();
             
-            await Task.Delay(100); // Simulation
+            // Configuration des headers pour l'API Supabase
+            httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+            httpClient.DefaultRequestHeaders.Add("apikey", _settings.ServiceRoleKey ?? _settings.Key);
+            httpClient.DefaultRequestHeaders.Add("Content-Type", "application/json");
             
-            // TODO: Implémenter la vraie réinitialisation via l'API REST Supabase
-            // var httpClient = new HttpClient();
-            // httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
-            // httpClient.DefaultRequestHeaders.Add("apikey", _settings.ServiceRoleKey ?? _settings.Key);
-            // 
-            // var content = new StringContent(JsonSerializer.Serialize(new { password = newPassword }), Encoding.UTF8, "application/json");
-            // var response = await httpClient.PutAsync($"{_settings.Url}/auth/v1/user", content);
+            // Préparation du payload pour la réinitialisation
+            var payload = new { password = newPassword };
+            var jsonContent = System.Text.Json.JsonSerializer.Serialize(payload);
+            var content = new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json");
             
-            return new AuthResult
+            // Appel à l'API Supabase pour réinitialiser le mot de passe
+            var response = await httpClient.PutAsync($"{_settings.Url}/auth/v1/user", content);
+            
+            if (response.IsSuccessStatusCode)
             {
-                IsSuccess = true,
-                Error = "Mot de passe réinitialisé avec succès."
-            };
+                var responseContent = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"Réinitialisation du mot de passe réussie: {responseContent}");
+                
+                return new AuthResult
+                {
+                    IsSuccess = true,
+                    Error = "Mot de passe réinitialisé avec succès."
+                };
+            }
+            else
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"Erreur API Supabase: {response.StatusCode} - {errorContent}");
+                
+                return new AuthResult
+                {
+                    IsSuccess = false,
+                    Error = $"Erreur lors de la réinitialisation: {response.StatusCode} - {errorContent}"
+                };
+            }
         }
         catch (Exception ex)
         {
+            Console.WriteLine($"Erreur lors de la réinitialisation du mot de passe: {ex.Message}");
             return new AuthResult
             {
                 IsSuccess = false,
                 Error = $"Erreur lors de la réinitialisation du mot de passe: {ex.Message}"
             };
+        }
+    }
+
+    /// <summary>
+    /// Mettre à jour un utilisateur dans Supabase
+    /// </summary>
+    public async Task<AuthResult> UpdateUserAsync(Guid userId, Dictionary<string, object> userData)
+    {
+        try
+        {
+            using var httpClient = new HttpClient();
+            httpClient.DefaultRequestHeaders.Add("apikey", _settings.ServiceRoleKey ?? _settings.Key);
+            httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_settings.ServiceRoleKey ?? _settings.Key}");
+            httpClient.DefaultRequestHeaders.Add("Content-Type", "application/json");
+            httpClient.DefaultRequestHeaders.Add("Prefer", "return=representation");
+            
+            var jsonContent = System.Text.Json.JsonSerializer.Serialize(userData);
+            var content = new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json");
+            
+            var url = $"{_settings.Url}/rest/v1/users?id=eq.{userId}";
+            var response = await httpClient.PatchAsync(url, content);
+            
+            if (response.IsSuccessStatusCode)
+            {
+                var responseContent = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"Utilisateur mis à jour avec succès: {responseContent}");
+                
+                return new AuthResult
+                {
+                    IsSuccess = true,
+                    Error = "Utilisateur mis à jour avec succès."
+                };
+            }
+            else
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"Erreur API Supabase: {response.StatusCode} - {errorContent}");
+                
+                return new AuthResult
+                {
+                    IsSuccess = false,
+                    Error = $"Erreur lors de la mise à jour: {response.StatusCode} - {errorContent}"
+                };
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erreur lors de la mise à jour de l'utilisateur: {ex.Message}");
+            return new AuthResult
+            {
+                IsSuccess = false,
+                Error = $"Erreur lors de la mise à jour de l'utilisateur: {ex.Message}"
+            };
+        }
+    }
+
+    /// <summary>
+    /// Récupérer un utilisateur depuis un token JWT (version simulée)
+    /// </summary>
+    public async Task<SupabaseUserInfo?> GetUserFromTokenAsync(string token)
+    {
+        await Task.Delay(100); // Simulation
+        // Décoder le JWT ici si besoin, mais ne va pas en base
+        return new SupabaseUserInfo
+        {
+            Id = Guid.NewGuid(),
+            Email = "test@komon.com",
+            Username = "testuser",
+            FirstName = "Test",
+            LastName = "User",
+            PhoneNumber = null,
+            DateOfBirth = DateTime.Now.AddYears(-25),
+            Bio = null,
+            Role = "Participant",
+            Status = "Active",
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+    }
+
+    /// <summary>
+    /// Parser une date de manière sécurisée
+    /// </summary>
+    private DateTime? ParseDateSafely(object? dateValue)
+    {
+        if (dateValue == null) return null;
+        
+        try
+        {
+            var dateString = dateValue.ToString();
+            if (string.IsNullOrEmpty(dateString)) return null;
+            
+            // Essayer de parser comme DateTimeOffset pour gérer les timezones
+            if (DateTimeOffset.TryParse(dateString, out var parsedDateTimeOffset))
+            {
+                // Convertir en UTC puis extraire la date
+                // Ajouter 1 jour pour compenser le décalage timezone
+                return parsedDateTimeOffset.UtcDateTime.Date.AddDays(1);
+            }
+            
+            // Essayer différents formats de date
+            if (DateTime.TryParse(dateString, out var parsedDate))
+            {
+                // S'assurer que c'est bien une date sans heure
+                // Ajouter 1 jour pour compenser le décalage timezone
+                return parsedDate.Date.AddDays(1);
+            }
+            
+            // Essayer le format ISO spécifique
+            if (DateTime.TryParseExact(dateString, "yyyy-MM-dd", null, System.Globalization.DateTimeStyles.None, out var isoDate))
+            {
+                return isoDate.Date;
+            }
+            
+            // Si c'est un timestamp Unix
+            if (long.TryParse(dateString, out var timestamp))
+            {
+                return DateTimeOffset.FromUnixTimeSeconds(timestamp).UtcDateTime.Date.AddDays(1);
+            }
+            
+            return null;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Parser un DateTime de manière sécurisée
+    /// </summary>
+    private DateTime? ParseDateTimeSafely(object? dateTimeValue)
+    {
+        if (dateTimeValue == null) return null;
+        
+        try
+        {
+            var dateTimeString = dateTimeValue.ToString();
+            if (string.IsNullOrEmpty(dateTimeString)) return null;
+            
+            // Essayer différents formats de DateTime
+            if (DateTime.TryParse(dateTimeString, out var parsedDateTime))
+            {
+                return parsedDateTime;
+            }
+            
+            // Si c'est un timestamp Unix
+            if (long.TryParse(dateTimeString, out var timestamp))
+            {
+                return DateTimeOffset.FromUnixTimeSeconds(timestamp).DateTime;
+            }
+            
+            return null;
+        }
+        catch
+        {
+            return null;
         }
     }
 }
@@ -636,6 +839,7 @@ public class SupabaseUserInfo
 {
     public Guid Id { get; set; }
     public string Email { get; set; } = string.Empty;
+    public string? Username { get; set; }
     public string? FirstName { get; set; }
     public string? LastName { get; set; }
     public string? PhoneNumber { get; set; }

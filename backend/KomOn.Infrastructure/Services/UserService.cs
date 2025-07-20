@@ -71,12 +71,23 @@ public class UserService : IUserService
         return users?.FirstOrDefault();
     }
 
+    public async Task<User?> GetByUsernameAsync(string username)
+    {
+        AddHeaders();
+        var response = await _httpClient.GetAsync($"{_restUrl}/users?username=eq.{username}");
+        response.EnsureSuccessStatusCode();
+        var json = await response.Content.ReadAsStringAsync();
+        var users = JsonSerializer.Deserialize<List<User>>(json);
+        return users?.FirstOrDefault();
+    }
+
     public async Task<User> CreateAsync(CreateUserRequest request)
     {
         AddHeaders();
         var user = new User
         {
             Id = request.Id, // Utilise l'ID fourni (celui de Supabase Auth)
+            Username = request.Username,
             FirstName = request.FirstName,
             LastName = request.LastName,
             Email = request.Email.ToLower(),
@@ -104,6 +115,8 @@ public class UserService : IUserService
         var existingUser = await GetByIdAsync(id);
         if (existingUser == null)
             throw new ArgumentException("Utilisateur non trouvé");
+        if (!string.IsNullOrEmpty(request.Username))
+            existingUser.Username = request.Username;
         if (!string.IsNullOrEmpty(request.FirstName))
             existingUser.FirstName = request.FirstName;
         if (!string.IsNullOrEmpty(request.LastName))
@@ -142,6 +155,10 @@ public class UserService : IUserService
     {
         var user = await GetByIdAsync(id);
         if (user == null) return false;
+        
+        // Mettre à jour les champs avec les nouvelles valeurs
+        if (!string.IsNullOrEmpty(request.Username))
+            user.Username = request.Username;
         if (!string.IsNullOrEmpty(request.FirstName))
             user.FirstName = request.FirstName;
         if (!string.IsNullOrEmpty(request.LastName))
@@ -152,15 +169,22 @@ public class UserService : IUserService
             user.DateOfBirth = request.DateOfBirth.Value;
         if (!string.IsNullOrEmpty(request.Bio))
             user.Bio = request.Bio;
+        
         user.UpdatedAt = DateTime.UtcNow;
-        return (await UpdateAsync(id, new UpdateUserRequest
+        
+        // Créer un UpdateUserRequest avec TOUS les champs mis à jour
+        var updateRequest = new UpdateUserRequest
         {
+            Username = user.Username,
             FirstName = user.FirstName,
             LastName = user.LastName,
             PhoneNumber = user.PhoneNumber,
             DateOfBirth = user.DateOfBirth,
             Bio = user.Bio
-        })) != null;
+        };
+        
+        var result = await UpdateAsync(id, updateRequest);
+        return result != null;
     }
 
     public async Task<bool> UpdateProfilePictureAsync(Guid id, string imageUrl)

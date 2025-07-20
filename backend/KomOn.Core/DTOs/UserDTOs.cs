@@ -14,6 +14,11 @@ public class CreateUserRequest
     public string Password { get; set; } = string.Empty;
     
     [Required]
+    [MaxLength(50)]
+    [RegularExpression(@"^[a-zA-Z0-9_-]+$", ErrorMessage = "Le pseudo ne peut contenir que des lettres, chiffres, tirets et underscores.")]
+    public string Username { get; set; } = string.Empty;
+    
+    [Required]
     [MaxLength(100)]
     public string FirstName { get; set; } = string.Empty;
     
@@ -34,6 +39,10 @@ public class CreateUserRequest
 
 public class UpdateUserRequest
 {
+    [MaxLength(50)]
+    [RegularExpression(@"^[a-zA-Z0-9_-]+$", ErrorMessage = "Le pseudo ne peut contenir que des lettres, chiffres, tirets et underscores.")]
+    public string? Username { get; set; }
+    
     [MaxLength(100)]
     public string? FirstName { get; set; }
     
@@ -55,6 +64,10 @@ public class UpdateUserRequest
 
 public class UpdateProfileRequest
 {
+    [MaxLength(50)]
+    [RegularExpression(@"^[a-zA-Z0-9_-]+$", ErrorMessage = "Le pseudo ne peut contenir que des lettres, chiffres, tirets et underscores.")]
+    public string? Username { get; set; }
+    
     [MaxLength(100)]
     public string? FirstName { get; set; }
     
@@ -74,6 +87,7 @@ public class UserResponse
 {
     public Guid Id { get; set; }
     public string Email { get; set; } = string.Empty;
+    public string Username { get; set; } = string.Empty;
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
     public string? PhoneNumber { get; set; }

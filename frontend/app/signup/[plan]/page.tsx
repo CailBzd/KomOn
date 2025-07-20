@@ -44,6 +44,7 @@ interface SelectedSport {
 }
 
 interface FormData {
+  username: string
   firstName: string
   lastName: string
   email: string
@@ -85,6 +86,7 @@ export default function SignUpFormPage({ params }: { params: { plan: string } })
   const authService = require('@/lib/api/auth').authService
   
   const [formData, setFormData] = useState<FormData>({
+    username: '',
     firstName: '',
     lastName: '',
     email: '',
@@ -138,8 +140,15 @@ export default function SignUpFormPage({ params }: { params: { plan: string } })
   }
 
   const validateStep1 = () => {
-    const { firstName, lastName, email, phone, dateOfBirth } = formData
-    return firstName.trim() && lastName.trim() && email.trim() && phone.trim() && dateOfBirth.trim()
+    const { username, firstName, lastName, email, phone, dateOfBirth } = formData
+    
+    // Validation du pseudo
+    const usernameErrors = []
+    if (username.length < 3) usernameErrors.push('Le pseudo doit contenir au moins 3 caractères')
+    if (username.length > 50) usernameErrors.push('Le pseudo ne peut pas dépasser 50 caractères')
+    if (!/^[a-zA-Z0-9_-]+$/.test(username)) usernameErrors.push('Le pseudo ne peut contenir que des lettres, chiffres, tirets et underscores')
+    
+    return firstName.trim() && lastName.trim() && email.trim() && phone.trim() && dateOfBirth.trim() && usernameErrors.length === 0
   }
 
   const validateStep2 = () => {
@@ -169,6 +178,21 @@ export default function SignUpFormPage({ params }: { params: { plan: string } })
     if (!/\d/.test(password)) errors.push('Au moins un chiffre')
     if (!/[@$!%*?&\-]/.test(password)) errors.push('Au moins un caractère spécial (@$!%*?&-) - caractères autorisés uniquement')
     if (!/^[A-Za-z\d@$!%*?\-\-]+$/.test(password)) errors.push('Caractères non autorisés détectés - utilisez seulement lettres, chiffres et @$!%*?&-')
+    
+    return {
+      isValid: errors.length === 0,
+      errors
+    }
+  }
+
+  const getUsernameValidationStatus = () => {
+    const { username } = formData
+    if (!username) return { isValid: false, errors: [] }
+    
+    const errors = []
+    if (username.length < 3) errors.push('Au moins 3 caractères')
+    if (username.length > 50) errors.push('Maximum 50 caractères')
+    if (!/^[a-zA-Z0-9_-]+$/.test(username)) errors.push('Lettres, chiffres, tirets et underscores uniquement')
     
     return {
       isValid: errors.length === 0,
@@ -208,6 +232,7 @@ export default function SignUpFormPage({ params }: { params: { plan: string } })
     try {
       // Préparer les données pour l'API
       const registerData = {
+        username: formData.username,
         firstName: formData.firstName,
         lastName: formData.lastName,
         email: formData.email,
@@ -291,6 +316,49 @@ export default function SignUpFormPage({ params }: { params: { plan: string } })
                       </Heading>
                       
                       <HStack spacing={4} w="full">
+                        <FormControl isRequired>
+                          <FormLabel>Pseudo</FormLabel>
+                          <Input
+                            value={formData.username}
+                            onChange={(e) => handleInputChange('username', e.target.value)}
+                            placeholder="Votre pseudo"
+                            isInvalid={formData.username ? !getUsernameValidationStatus().isValid : false}
+                          />
+                          {formData.username && (
+                            <VStack align="start" spacing={1} mt={2}>
+                              <Text fontSize="sm" fontWeight="semibold" color="gray.600">
+                                Le pseudo doit contenir :
+                              </Text>
+                              {getUsernameValidationStatus().errors.map((error, index) => (
+                                <HStack key={index} spacing={2}>
+                                  <Box
+                                    w={2}
+                                    h={2}
+                                    borderRadius="full"
+                                    bg="red.400"
+                                  />
+                                  <Text fontSize="xs" color="red.500">
+                                    {error}
+                                  </Text>
+                                </HStack>
+                              ))}
+                              {getUsernameValidationStatus().isValid && (
+                                <HStack spacing={2}>
+                                  <Box
+                                    w={2}
+                                    h={2}
+                                    borderRadius="full"
+                                    bg="green.400"
+                                  />
+                                  <Text fontSize="xs" color="green.500" fontWeight="semibold">
+                                    Pseudo valide
+                                  </Text>
+                                </HStack>
+                              )}
+                            </VStack>
+                          )}
+                        </FormControl>
+                        
                         <FormControl isRequired>
                           <FormLabel>Prénom</FormLabel>
                           <Input

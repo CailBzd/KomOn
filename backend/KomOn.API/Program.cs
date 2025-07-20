@@ -7,11 +7,23 @@ using KomOn.Infrastructure.Configuration;
 using KomOn.Core.DTOs;
 using AutoMapper;
 using KomOn.API.Mapping;
+using System.IdentityModel.Tokens.Jwt;
+using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllers();
+builder.Services.AddControllers(options =>
+{
+    // Configuration pour accepter JSON
+    options.SuppressAsyncSuffixInActionNames = false;
+})
+.AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+    options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+    options.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
+});
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -33,6 +45,8 @@ builder.Services.AddScoped<SupabaseService>();
 builder.Services.AddScoped<EventService>();
 builder.Services.AddScoped<PaymentService>();
 
+
+
 // AutoMapper
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
@@ -47,7 +61,40 @@ builder.Services.AddCors(options =>
     });
 });
 
+
+
 var app = builder.Build();
+
+// Méthode pour décoder le JWT Supabase et extraire l'email
+string? ExtractEmailFromSupabaseToken(string token)
+{
+    try
+    {
+        // Décoder le JWT sans vérification de signature (pour le développement)
+        var handler = new JwtSecurityTokenHandler();
+        var jsonToken = handler.ReadJwtToken(token);
+        
+        // Extraire l'email depuis les claims
+        var emailClaim = jsonToken.Claims.FirstOrDefault(c => c.Type == "email");
+        if (emailClaim != null)
+        {
+            return emailClaim.Value;
+        }
+        
+        // Si pas d'email dans les claims, essayer dans le payload
+        if (jsonToken.Payload.TryGetValue("email", out var emailObj))
+        {
+            return emailObj?.ToString();
+        }
+        
+        return null;
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Erreur lors du décodage du JWT: {ex.Message}");
+        return null;
+    }
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -109,16 +156,59 @@ app.Use(async (context, next) =>
 
     var token = authHeader.Substring("Bearer ".Length);
     
-    // TODO: Implémenter la vérification du JWT Supabase
-    // Pour l'instant, on accepte tous les tokens
-    // var supabaseService = context.RequestServices.GetRequiredService<SupabaseService>();
-    // var isValid = await supabaseService.ValidateTokenAsync(token);
-    // if (!isValid)
-    // {
-    //     context.Response.StatusCode = 401;
-    //     await context.Response.WriteAsync("Token invalide");
-    //     return;
-    // }
+    try
+    {
+        // Décoder le token JWT pour extraire l'email de l'utilisateur
+        var userService = context.RequestServices.GetRequiredService<IUserService>();
+        
+        // Extraire l'email depuis le token JWT
+        string userEmail;
+        
+        if (token.StartsWith("mock-jwt-token-"))
+        {
+            // Token de développement - utiliser l'email par défaut
+            userEmail = "test@komon.com";
+        }
+        else
+        {
+            // Token Supabase réel - décoder le JWT
+            userEmail = ExtractEmailFromSupabaseToken(token) ?? string.Empty;
+            
+            if (string.IsNullOrEmpty(userEmail))
+            {
+                context.Response.StatusCode = 401;
+                await context.Response.WriteAsync("Impossible d'extraire l'email du token JWT");
+                return;
+            }
+        }
+        
+        // Récupérer l'utilisateur depuis la base avec l'email extrait du token
+        var user = await userService.GetByEmailAsync(userEmail);
+        
+        if (user == null)
+        {
+            context.Response.StatusCode = 401;
+            await context.Response.WriteAsync($"Utilisateur non trouvé pour l'email: {userEmail}");
+            return;
+        }
+
+        // Créer les claims pour l'utilisateur avec les vraies données
+        var claims = new List<System.Security.Claims.Claim>
+        {
+            new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Email, user.Email),
+            new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Name, $"{user.FirstName} {user.LastName}")
+        };
+
+        var identity = new System.Security.Claims.ClaimsIdentity(claims, "Bearer");
+        context.User = new System.Security.Claims.ClaimsPrincipal(identity);
+    }
+    catch (Exception ex)
+    {
+        context.Response.StatusCode = 401;
+        await context.Response.WriteAsync($"Erreur de validation du token: {ex.Message}");
+        return;
+    }
 
     await next();
 });

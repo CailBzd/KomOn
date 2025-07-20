@@ -57,9 +57,9 @@ public class AuthService
                 {
                     { "first_name", request.FirstName },
                     { "last_name", request.LastName },
-                    { "phone_number", request.PhoneNumber },
+                    { "phone_number", request.PhoneNumber ?? string.Empty },
                     { "date_of_birth", request.DateOfBirth.ToString("yyyy-MM-dd") },
-                    { "bio", request.Bio ?? "" },
+                    { "bio", request.Bio ?? string.Empty },
                     { "role", "Participant" }
                 }
             };
@@ -88,6 +88,7 @@ public class AuthService
             var createUserRequest = new CreateUserRequest
             {
                 Id = supabaseResponse.UserId, // Utilise le Guid retourné par Supabase
+                Username = request.Username,
                 FirstName = request.FirstName,
                 LastName = request.LastName,
                 Email = request.Email,
@@ -162,13 +163,14 @@ public class AuthService
             var createUserRequest = new CreateUserRequest
             {
                 Id = supabaseResponse.UserId, // <-- Ajout de l'ID Auth
+                Username = request.Username,
                 FirstName = request.FirstName,
                 LastName = request.LastName,
                 Email = request.Email,
                 DateOfBirth = request.DateOfBirth,
-                PhoneNumber = null,
+                PhoneNumber = string.Empty,
                 Bio = request.Bio,
-                Password = null, // Pas de mot de passe pour l'inscription par email
+                Password = string.Empty, // Pas de mot de passe pour l'inscription par email
                 Role = "Participant"
             };
 
@@ -217,7 +219,7 @@ public class AuthService
                 { "first_name", request.FirstName },
                 { "last_name", request.LastName },
                 { "date_of_birth", request.DateOfBirth.ToString("yyyy-MM-dd") },
-                { "bio", request.Bio ?? "" },
+                { "bio", request.Bio ?? string.Empty },
                 { "role", "Participant" }
             };
 
@@ -236,13 +238,14 @@ public class AuthService
             var createUserRequest = new CreateUserRequest
             {
                 Id = supabaseResponse.UserId, // <-- Ajout de l'ID Auth
+                Username = request.Username,
                 FirstName = request.FirstName,
                 LastName = request.LastName,
-                Email = null, // Pas d'email pour l'inscription par téléphone
+                Email = string.Empty, // Pas d'email pour l'inscription par téléphone
                 DateOfBirth = request.DateOfBirth,
                 PhoneNumber = request.PhoneNumber,
                 Bio = request.Bio,
-                Password = null, // Pas de mot de passe pour l'inscription par téléphone
+                Password = string.Empty, // Pas de mot de passe pour l'inscription par téléphone
                 Role = "Participant"
             };
 
@@ -329,7 +332,8 @@ public class AuthService
                 Role = supabaseUser.Role ?? "Participant",
                 Status = supabaseUser.Status ?? "Active",
                 CreatedAt = supabaseUser.CreatedAt ?? DateTime.UtcNow,
-                UpdatedAt = supabaseUser.UpdatedAt ?? DateTime.UtcNow
+                UpdatedAt = supabaseUser.UpdatedAt ?? DateTime.UtcNow,
+                Username = supabaseUser.Username!
             };
 
             return new AuthResult
@@ -484,12 +488,12 @@ public class AuthService
                 user = new KomOn.Core.Entities.User
                 {
                     Id = Guid.NewGuid(),
-                    Email = null,
+                    Email = string.Empty,
                     FirstName = "Utilisateur",
                     LastName = "Téléphone",
                     PhoneNumber = emailOrPhone,
                     DateOfBirth = DateTime.Now.AddYears(-25),
-                    Bio = null,
+                    Bio = string.Empty,
                     Role = "Participant",
                     Status = "Active",
                     CreatedAt = DateTime.UtcNow,
@@ -826,13 +830,13 @@ public class AuthService
         }
     }
 
-    public async Task<AuthResult> VerifyEmailCodeAsync(string email, string code)
+    public Task<AuthResult> VerifyEmailCodeAsync(string email, string code)
     {
-        return new AuthResult
+        return Task.FromResult(new AuthResult
         {
             IsSuccess = true,
             Error = "Veuillez vérifier votre email pour valider votre compte."
-        };
+        });
     }
 
     private List<string> ValidateRegisterRequest(RegisterRequest request)
@@ -947,6 +951,4 @@ public class AuthService
 
         return errors;
     }
-}
-
-// Utilise la classe AuthResult de KomOn.Infrastructure.Services 
+} 
