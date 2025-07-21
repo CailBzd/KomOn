@@ -14,9 +14,11 @@ import {
 } from 'react-native';
 import { useAuth } from '../../contexts/AuthContext';
 import { authService } from '../../services/authService';
+import LoadingButton from '../../components/LoadingButton';
 
 export default function ProfileScreen() {
-  const { user, updateUser } = useAuth();
+  const { user, updateUser, logout } = useAuth();
+  const [logoutLoading, setLogoutLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -70,6 +72,33 @@ export default function ProfileScreen() {
       bio: user?.bio || '',
     });
     setIsEditing(false);
+  };
+
+  const handleLogout = async () => {
+    Alert.alert(
+      'Déconnexion',
+      'Êtes-vous sûr de vouloir vous déconnecter ?',
+      [
+        {
+          text: 'Annuler',
+          style: 'cancel',
+        },
+        {
+          text: 'Déconnexion',
+          style: 'destructive',
+          onPress: async () => {
+            setLogoutLoading(true);
+            try {
+              await logout();
+            } catch (error) {
+              Alert.alert('Erreur', 'Erreur lors de la déconnexion');
+            } finally {
+              setLogoutLoading(false);
+            }
+          },
+        },
+      ]
+    );
   };
 
   return (
@@ -271,6 +300,18 @@ export default function ProfileScreen() {
                 <Text style={styles.actionButtonText}>Supprimer mon compte</Text>
               </TouchableOpacity>
             </View>
+
+            {/* Logout Section */}
+            <View style={styles.logoutSection}>
+              <LoadingButton
+                title="Se déconnecter"
+                loadingTitle="Déconnexion..."
+                onPress={handleLogout}
+                loading={logoutLoading}
+                variant="outline"
+                style={styles.logoutButton}
+              />
+            </View>
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
@@ -463,6 +504,7 @@ const styles = StyleSheet.create({
   },
   actionsSection: {
     gap: 12,
+    marginBottom: 32,
   },
   actionButton: {
     backgroundColor: '#ffffff',
@@ -483,5 +525,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#2d3748',
     textAlign: 'center',
+  },
+  logoutSection: {
+    marginTop: 20,
+    paddingTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#e2e8f0',
+  },
+  logoutButton: {
+    borderColor: '#dc2626',
   },
 }); 

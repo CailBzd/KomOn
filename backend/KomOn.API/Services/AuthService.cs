@@ -273,21 +273,30 @@ public class AuthService
 
     public async Task<AuthResult> LoginAsync(LoginRequest request)
     {
+        Console.WriteLine($"🔧 AuthService.LoginAsync called with email: {request?.Email}");
+        
         // Validation des données
         var validationErrors = ValidateLoginRequest(request);
         if (validationErrors.Any())
         {
+            var errorMessage = string.Join("; ", validationErrors);
+            Console.WriteLine($"❌ Login validation failed: {errorMessage}");
             return new AuthResult
             {
                 IsSuccess = false,
-                Error = string.Join("; ", validationErrors)
+                Error = errorMessage
             };
         }
 
+        Console.WriteLine($"✅ Login validation passed, attempting Supabase authentication");
+        
         try
         {
             // 1. Authentifier avec Supabase
+            Console.WriteLine($"🔧 Calling SupabaseService.SignInAsync for email: {request.Email}");
             var supabaseResponse = await _supabaseService.SignInAsync(request.Email, request.Password);
+            
+            Console.WriteLine($"🔧 Supabase response received: Success={supabaseResponse.IsSuccess}, Error={supabaseResponse.Error}");
             
             if (!supabaseResponse.IsSuccess)
             {
@@ -300,10 +309,33 @@ public class AuthService
                         Error = "Votre adresse email n’a pas encore été validée. Merci de vérifier votre boîte mail et de cliquer sur le lien de validation."
                     };
                 }
+                // Cas spécifique : identifiants invalides
+                if (supabaseResponse.Error != null && supabaseResponse.Error.ToLower().Contains("invalid login credentials"))
+                {
+                    Console.WriteLine($"❌ Invalid credentials error");
+                    return new AuthResult
+                    {
+                        IsSuccess = false,
+                        Error = "Email ou mot de passe incorrect. Vérifiez vos identifiants et réessayez."
+                    };
+                }
+                
+                // Cas spécifique : utilisateur non trouvé
+                if (supabaseResponse.Error != null && supabaseResponse.Error.ToLower().Contains("user not found"))
+                {
+                    Console.WriteLine($"❌ User not found error");
+                    return new AuthResult
+                    {
+                        IsSuccess = false,
+                        Error = "Aucun compte trouvé avec cette adresse email."
+                    };
+                }
+                
+                Console.WriteLine($"❌ Supabase authentication failed: {supabaseResponse.Error}");
                 return new AuthResult
                 {
                     IsSuccess = false,
-                    Error = supabaseResponse.Error ?? "Email ou mot de passe incorrect."
+                    Error = "Email ou mot de passe incorrect. Vérifiez vos identifiants et réessayez."
                 };
             }
 
@@ -346,10 +378,13 @@ public class AuthService
         }
         catch (Exception ex)
         {
+            Console.WriteLine($"❌ Exception during login: {ex.Message}");
+            Console.WriteLine($"❌ Stack trace: {ex.StackTrace}");
+            
             return new AuthResult
             {
                 IsSuccess = false,
-                Error = $"Erreur lors de la connexion: {ex.Message}"
+                Error = "Erreur de connexion. Veuillez réessayer plus tard."
             };
         }
     }

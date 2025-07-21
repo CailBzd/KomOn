@@ -1,18 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
-  TextInput,
-  SafeAreaView,
-  StatusBar,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
 } from 'react-native';
 import { useAuth } from '../../contexts/AuthContext';
+import { isValidEmail } from '../../utils/validation';
+import ValidatedInput from '../../components/ValidatedInput';
+import ValidationMessage from '../../components/ValidationMessage';
+import LoadingButton from '../../components/LoadingButton';
+import SafeScreen from '../../components/SafeScreen';
+import StatusBarManager, { StatusBarPresets } from '../../components/StatusBarManager';
+import DeviceAwareHeader from '../../components/DeviceAwareHeader';
 
 interface LoginScreenProps {
   navigation: any;
@@ -23,11 +26,71 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [generalError, setGeneralError] = useState('');
+  const [isEmailTouched, setIsEmailTouched] = useState(false);
   const { login } = useAuth();
 
+  // Validation en temps réel de l'email
+  useEffect(() => {
+    if (isEmailTouched && email) {
+      if (!isValidEmail(email)) {
+        setEmailError('Veuillez saisir une adresse email valide');
+      } else {
+        setEmailError('');
+      }
+    }
+  }, [email, isEmailTouched]);
+
+  // Validation immédiate si l'email est clairement invalide
+  useEffect(() => {
+    if (email && email.includes('@') && !isValidEmail(email)) {
+      setEmailError('Veuillez saisir une adresse email valide');
+    }
+  }, [email]);
+
+  // Réinitialiser les erreurs quand l'utilisateur tape
+  useEffect(() => {
+    if (passwordError && password) {
+      setPasswordError('');
+    }
+    if (generalError && (email || password)) {
+      setGeneralError('');
+    }
+  }, [password, passwordError, generalError]);
+
+  const validateEmail = (email: string) => {
+    if (!email) {
+      setEmailError('L\'email est requis');
+      return false;
+    }
+    if (!isValidEmail(email)) {
+      setEmailError('Veuillez saisir une adresse email valide');
+      return false;
+    }
+    setEmailError('');
+    return true;
+  };
+
+  const validatePassword = (password: string) => {
+    if (!password) {
+      setPasswordError('Le mot de passe est requis');
+      return false;
+    }
+    setPasswordError('');
+    return true;
+  };
+
   const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert('Erreur', 'Veuillez remplir tous les champs');
+    // Réinitialiser les erreurs
+    setGeneralError('');
+    
+    // Validation
+    const isEmailValid = validateEmail(email);
+    const isPasswordValid = validatePassword(password);
+    
+    if (!isEmailValid || !isPasswordValid) {
       return;
     }
 
@@ -35,7 +98,8 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
     try {
       await login({ email, password });
     } catch (error) {
-      Alert.alert('Erreur', error instanceof Error ? error.message : 'Erreur de connexion');
+      const errorMessage = error instanceof Error ? error.message : 'Erreur de connexion';
+      setGeneralError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -43,8 +107,24 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
 
   return (
     <>
-      <StatusBar barStyle="dark-content" backgroundColor="#f7fafc" />
-      <SafeAreaView style={styles.safeArea}>
+      <StatusBarManager {...StatusBarPresets.light} />
+      <SafeScreen
+        statusBarStyle="dark-content"
+        backgroundColor="#f7fafc"
+        edges={['top', 'bottom', 'left', 'right']}
+        paddingTop={0}
+        paddingBottom={0}
+        paddingHorizontal={20}
+      >
+        <DeviceAwareHeader
+          title="Connexion"
+          showBackButton
+          onBackPress={() => navigation.navigate('Welcome')}
+          backgroundColor="#f7fafc"
+          textColor="#2d3748"
+          elevation={0}
+        />
+        
         <KeyboardAvoidingView 
           style={styles.container}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -53,17 +133,6 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
             contentContainerStyle={styles.scrollContainer}
             showsVerticalScrollIndicator={false}
           >
-            {/* Header */}
-            <View style={styles.header}>
-              <TouchableOpacity 
-                style={styles.backButton}
-                onPress={() => navigation.navigate('Welcome')}
-              >
-                <Text style={styles.backButtonText}>←</Text>
-              </TouchableOpacity>
-              <Text style={styles.headerTitle}>Connexion</Text>
-              <View style={styles.headerSpacer} />
-            </View>
 
             {/* Logo */}
             <View style={styles.logoContainer}>
@@ -79,40 +148,36 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
                 Connectez-vous à votre compte KomOn
               </Text>
 
-              <View style={styles.inputContainer}>
-                <Text style={styles.label}>Email</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="votre@email.com"
-                  value={email}
-                  onChangeText={setEmail}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                />
-              </View>
+              <ValidatedInput
+                label="Email"
+                value={email}
+                onChangeText={setEmail}
+                placeholder="votre@email.com"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+                error={emailError}
+                onBlur={() => setIsEmailTouched(true)}
+              />
 
-              <View style={styles.inputContainer}>
-                <Text style={styles.label}>Mot de passe</Text>
-                <View style={styles.passwordContainer}>
-                  <TextInput
-                    style={styles.passwordInput}
-                    placeholder="Votre mot de passe"
-                    value={password}
-                    onChangeText={setPassword}
-                    secureTextEntry={!showPassword}
-                    autoCapitalize="none"
-                  />
-                  <TouchableOpacity
-                    style={styles.eyeButton}
-                    onPress={() => setShowPassword(!showPassword)}
-                  >
-                    <Text style={styles.eyeIcon}>
-                      {showPassword ? '👁️' : '👁️‍🗨️'}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
+              <ValidatedInput
+                label="Mot de passe"
+                value={password}
+                onChangeText={setPassword}
+                placeholder="Votre mot de passe"
+                secureTextEntry={!showPassword}
+                autoCapitalize="none"
+                error={passwordError}
+                showEyeIcon={true}
+                onEyePress={() => setShowPassword(!showPassword)}
+                showEyeIconState={showPassword}
+              />
+
+              <ValidationMessage
+                message={generalError}
+                type="error"
+                visible={!!generalError}
+              />
 
               <TouchableOpacity 
                 style={styles.forgotPassword}
@@ -123,15 +188,14 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
                 </Text>
               </TouchableOpacity>
 
-              <TouchableOpacity 
-                style={[styles.loginButton, loading && styles.loginButtonDisabled]}
+              <LoadingButton
+                title="Se connecter"
+                loadingTitle="Connexion en cours..."
                 onPress={handleLogin}
-                disabled={loading}
-              >
-                <Text style={styles.loginButtonText}>
-                  {loading ? 'Connexion...' : 'Se connecter'}
-                </Text>
-              </TouchableOpacity>
+                loading={loading}
+                disabled={!email || !password}
+                style={styles.loginButton}
+              />
 
               <View style={styles.divider}>
                 <View style={styles.dividerLine} />
@@ -148,11 +212,11 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
                 </Text>
               </TouchableOpacity>
             </View>
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
-    </>
-  );
+                      </ScrollView>
+          </KeyboardAvoidingView>
+        </SafeScreen>
+      </>
+    );
 }
 
 const styles = StyleSheet.create({
@@ -165,46 +229,8 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     flexGrow: 1,
-    paddingHorizontal: 20,
-    paddingTop: 20,
+    paddingTop: 80, // Espace pour le header
     paddingBottom: 40,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 30,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#ffffff',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  backButtonText: {
-    fontSize: 20,
-    color: '#319795',
-    fontWeight: 'bold',
-  },
-  headerTitle: {
-    flex: 1,
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#2d3748',
-    textAlign: 'center',
-    marginRight: 40,
-  },
-  headerSpacer: {
-    width: 40,
   },
   logoContainer: {
     alignItems: 'center',
@@ -247,25 +273,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 32,
   },
-  inputContainer: {
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#2d3748',
-    marginBottom: 8,
-  },
-  input: {
-    backgroundColor: '#ffffff',
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 16,
-    color: '#2d3748',
-  },
+
   forgotPassword: {
     alignSelf: 'flex-end',
     marginBottom: 24,
@@ -276,27 +284,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   loginButton: {
-    backgroundColor: '#319795',
-    paddingVertical: 16,
-    borderRadius: 12,
     marginBottom: 24,
-    shadowColor: '#319795',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  loginButtonDisabled: {
-    opacity: 0.6,
-  },
-  loginButtonText: {
-    color: '#ffffff',
-    fontSize: 18,
-    fontWeight: 'bold',
-    textAlign: 'center',
   },
   divider: {
     flexDirection: 'row',
@@ -326,26 +314,5 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
   },
-  passwordContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#ffffff',
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    borderRadius: 12,
-  },
-  passwordInput: {
-    flex: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 16,
-    color: '#2d3748',
-  },
-  eyeButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-  },
-  eyeIcon: {
-    fontSize: 20,
-  },
+
 }); 

@@ -17,6 +17,11 @@ builder.Services.AddControllers(options =>
 {
     // Configuration pour accepter JSON
     options.SuppressAsyncSuffixInActionNames = false;
+    // Configuration pour le développement
+    if (builder.Environment.IsDevelopment())
+    {
+        Console.WriteLine("🔧 Development mode: Model validation will be handled manually");
+    }
 })
 .AddJsonOptions(options =>
 {
@@ -101,9 +106,13 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    // En développement, ne pas forcer HTTPS pour permettre les tests HTTP
+    Console.WriteLine("🔧 Development mode: HTTPS redirection disabled");
 }
-
-app.UseHttpsRedirection();
+else
+{
+    app.UseHttpsRedirection();
+}
 
 // CORS doit être avant les autres middlewares
 app.UseCors("AllowAll");

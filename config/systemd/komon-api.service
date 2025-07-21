@@ -1,0 +1,32 @@
+[Unit]
+Description=KomOn API Service
+After=network.target
+
+[Service]
+Type=exec
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/api.komon.ptilab.fr
+ExecStart=/usr/bin/dotnet KomOn.API.dll
+Restart=always
+RestartSec=10
+KillSignal=SIGINT
+SyslogIdentifier=komon-api
+Environment=ASPNETCORE_ENVIRONMENT=Production
+Environment=ASPNETCORE_URLS=http://localhost:5000
+Environment=DOTNET_PRINT_TELEMETRY_MESSAGE=false
+Environment=SCALEWAY_ACCESS_KEY=your-scaleway-access-key
+Environment=SCALEWAY_SECRET_KEY=your-scaleway-secret-key
+Environment=SCALEWAY_DATABASE_URL=postgresql://username:password@host:port/database
+Environment=JWT_SECRET=your-super-secret-jwt-key-with-at-least-32-characters
+Environment=DB_PASSWORD=your-secure-database-password
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/www/api.komon.ptilab.fr
+
+[Install]
+WantedBy=multi-user.target 

@@ -46,15 +46,15 @@ export function CTA() {
               fontWeight="bold"
               color="gray.800"
             >
-              Prêt à rejoindre la{' '}
+              Téléchargez l'app{' '}
               <Text
                 as="span"
                 bgGradient="linear(to-r, accent.primary, accent.secondary)"
                 bgClip="text"
               >
-                communauté sportive
+                KomOn Mobile
               </Text>{' '}
-              de votre région ?
+              maintenant !
             </Heading>
 
             <Text
@@ -63,8 +63,8 @@ export function CTA() {
               maxW="2xl"
               lineHeight="1.6"
             >
-              Téléchargez l'application mobile ou créez votre compte web pour 
-              commencer à découvrir et participer aux événements sportifs locaux dès aujourd'hui.
+              Rejoignez la communauté sportive de votre région en téléchargeant 
+              l'application mobile KomOn. Disponible sur iOS et Android.
             </Text>
 
             <HStack
@@ -85,8 +85,9 @@ export function CTA() {
                 borderRadius="xl"
                 boxShadow="lg"
                 _active={{ transform: 'scale(0.95)' }}
+                onClick={() => window.open('https://play.google.com/store/apps/details?id=com.komon.mobile', '_blank')}
               >
-                Créer un compte
+                Télécharger sur Android
               </Button>
 
               <Button
@@ -102,8 +103,9 @@ export function CTA() {
                 color="accent.primary"
                 bg="white"
                 _hover={{ bg: 'pastel.indigo' }}
+                onClick={() => window.open('https://apps.apple.com/app/komon-mobile/id123456789', '_blank')}
               >
-                Télécharger l'app
+                Télécharger sur iOS
               </Button>
             </HStack>
           </VStack>
@@ -166,48 +168,7 @@ export function CTA() {
                 </VStack>
               </Box>
 
-              <Box
-                bg="white"
-                p="6"
-                borderRadius="2xl"
-                boxShadow="lg"
-                textAlign="center"
-                minW="200px"
-                transition="all 0.3s"
-                _hover={{
-                  transform: 'translateY(-4px)',
-                  boxShadow: 'xl',
-                }}
-              >
-                <VStack spacing="4">
-                  <Box
-                    w="12"
-                    h="12"
-                    bg="pastel.green"
-                    borderRadius="xl"
-                    display="flex"
-                    alignItems="center"
-                    justifyContent="center"
-                  >
-                    <Download color="accent.success" size={24} />
-                  </Box>
-                  <VStack spacing="2">
-                    <Text
-                      fontSize="lg"
-                      fontWeight="semibold"
-                      color="gray.800"
-                    >
-                      Version Web
-                    </Text>
-                    <Text
-                      fontSize="sm"
-                      color="gray.600"
-                    >
-                      Tous navigateurs
-                    </Text>
-                  </VStack>
-                </VStack>
-              </Box>
+
             </HStack>
           </VStack>
 
@@ -228,7 +189,7 @@ export function CTA() {
                 fontWeight="semibold"
                 color="gray.800"
               >
-                Commencez gratuitement dès aujourd'hui
+                Téléchargez l'app gratuitement
               </Heading>
 
               <Text
@@ -236,7 +197,7 @@ export function CTA() {
                 fontSize="lg"
                 lineHeight="1.6"
               >
-                Rejoignez des milliers de sportifs qui utilisent déjà KomOn 
+                Rejoignez des milliers de sportifs qui utilisent déjà KomOn Mobile 
                 pour découvrir et participer aux événements de leur région.
               </Text>
 
@@ -252,8 +213,9 @@ export function CTA() {
                 borderRadius="xl"
                 boxShadow="lg"
                 _active={{ transform: 'scale(0.95)' }}
+                onClick={() => window.open('https://play.google.com/store/apps/details?id=com.komon.mobile', '_blank')}
               >
-                Commencer maintenant
+                Télécharger maintenant
               </Button>
             </VStack>
           </Box>

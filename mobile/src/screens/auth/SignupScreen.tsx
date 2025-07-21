@@ -13,6 +13,13 @@ import {
   ScrollView,
 } from 'react-native';
 import { useAuth } from '../../contexts/AuthContext';
+import { 
+  isValidEmail, 
+  validatePassword, 
+  isValidUsername, 
+  isValidPhoneNumber, 
+  isValidDateOfBirth 
+} from '../../utils/validation';
 
 interface SignupScreenProps {
   navigation: any;
@@ -52,14 +59,34 @@ export default function SignupScreen({ navigation }: SignupScreenProps) {
       return false;
     }
 
-    if (formData.password.length < 8) {
-      Alert.alert('Erreur', 'Le mot de passe doit contenir au moins 8 caractères');
+    // Validation du mot de passe
+    const passwordValidation = validatePassword(formData.password);
+    if (!passwordValidation.isValid) {
+      Alert.alert('Erreur', passwordValidation.errors.join('\n'));
       return false;
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
+    // Validation de l'email
+    if (!isValidEmail(formData.email)) {
       Alert.alert('Erreur', 'Veuillez entrer une adresse email valide');
+      return false;
+    }
+
+    // Validation du nom d'utilisateur
+    if (!isValidUsername(formData.username)) {
+      Alert.alert('Erreur', 'Le nom d\'utilisateur doit contenir entre 3 et 50 caractères (lettres, chiffres, tirets, underscores)');
+      return false;
+    }
+
+    // Validation du numéro de téléphone (si fourni)
+    if (formData.phoneNumber && !isValidPhoneNumber(formData.phoneNumber)) {
+      Alert.alert('Erreur', 'Veuillez entrer un numéro de téléphone valide');
+      return false;
+    }
+
+    // Validation de la date de naissance
+    if (!isValidDateOfBirth(formData.dateOfBirth)) {
+      Alert.alert('Erreur', 'Veuillez entrer une date de naissance valide (âge minimum 13 ans)');
       return false;
     }
 

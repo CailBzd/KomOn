@@ -11,6 +11,7 @@ import LoginScreen from '../screens/auth/LoginScreen';
 import SignupScreen from '../screens/auth/SignupScreen';
 import ForgotPasswordScreen from '../screens/auth/ForgotPasswordScreen';
 import ResetPasswordScreen from '../screens/auth/ResetPasswordScreen';
+import PricingScreen from '../screens/auth/PricingScreen';
 
 // Écrans principaux
 import DashboardScreen from '../screens/main/DashboardScreen';
@@ -102,6 +103,7 @@ export default function AppNavigator() {
           // Routes d'authentification
           <>
             <Stack.Screen name="Welcome" component={WelcomeScreen} />
+            <Stack.Screen name="Pricing" component={PricingScreen} />
             <Stack.Screen name="Login" component={LoginScreen} />
             <Stack.Screen name="Signup" component={SignupScreen} />
             <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />

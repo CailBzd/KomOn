@@ -145,21 +145,64 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<ActionResult<AuthResponse>> Login([FromBody] LoginRequest request)
     {
-        if (!ModelState.IsValid)
+        // Log de la requête reçue
+        Console.WriteLine($"🔧 Login request received: Email={request?.Email}, Password length={request?.Password?.Length ?? 0}");
+        Console.WriteLine($"🔧 Request object: {System.Text.Json.JsonSerializer.Serialize(request)}");
+        
+        // Vérification manuelle des données
+        if (request == null)
         {
+            Console.WriteLine("❌ Request is null");
             return BadRequest(new AuthResponse
             {
                 IsSuccess = false,
-                Error = string.Join("; ", ModelState.Values
-                    .SelectMany(v => v.Errors)
-                    .Select(e => e.ErrorMessage))
+                Error = "Request body is required"
+            });
+        }
+        
+        if (string.IsNullOrWhiteSpace(request.Email))
+        {
+            Console.WriteLine("❌ Email is null or empty");
+            return BadRequest(new AuthResponse
+            {
+                IsSuccess = false,
+                Error = "Email is required"
+            });
+        }
+        
+        if (string.IsNullOrWhiteSpace(request.Password))
+        {
+            Console.WriteLine("❌ Password is null or empty");
+            return BadRequest(new AuthResponse
+            {
+                IsSuccess = false,
+                Error = "Password is required"
+            });
+        }
+        
+        if (!ModelState.IsValid)
+        {
+            var errors = string.Join("; ", ModelState.Values
+                .SelectMany(v => v.Errors)
+                .Select(e => e.ErrorMessage));
+            
+            Console.WriteLine($"❌ Model validation failed: {errors}");
+            Console.WriteLine($"❌ ModelState errors: {System.Text.Json.JsonSerializer.Serialize(ModelState)}");
+            
+            return BadRequest(new AuthResponse
+            {
+                IsSuccess = false,
+                Error = errors
             });
         }
 
+        Console.WriteLine($"✅ Model validation passed, calling AuthService.LoginAsync");
+        
         var result = await _authService.LoginAsync(request);
 
         if (!result.IsSuccess)
         {
+            Console.WriteLine($"❌ Login failed: {result.Error}");
             return BadRequest(new AuthResponse
             {
                 IsSuccess = false,
@@ -167,6 +210,8 @@ public class AuthController : ControllerBase
             });
         }
 
+        Console.WriteLine($"✅ Login successful for user: {result.User?.Email}");
+        
         var userDto = _mapper.Map<UserDto>(result.User);
         var response = new AuthResponse
         {

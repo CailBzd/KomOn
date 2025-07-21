@@ -66,7 +66,7 @@ export function Hero() {
                 fontWeight="semibold"
                 boxShadow="md"
               >
-                🏆 Plateforme d'événements sportifs locaux
+                📱 Application mobile disponible
               </Box>
 
               <Heading
@@ -76,15 +76,15 @@ export function Hero() {
                 lineHeight="1.2"
                 color="gray.800"
               >
-                Découvrez et participez aux{' '}
+                Téléchargez l'app{' '}
                 <Text
                   as="span"
                   bgGradient="linear(to-r, accent.primary, accent.secondary)"
                   bgClip="text"
                 >
-                  événements sportifs
+                  KomOn Mobile
                 </Text>{' '}
-                de votre région
+                et rejoignez la communauté
               </Heading>
 
               <Text
@@ -93,8 +93,8 @@ export function Hero() {
                 maxW="500px"
                 lineHeight="1.6"
               >
-                Rejoignez une communauté de passionnés de sport. Trouvez des événements, 
-                inscrivez-vous et connectez-vous avec d'autres sportifs locaux.
+                L'application mobile vous permet de découvrir et participer aux événements sportifs 
+                de votre région, directement depuis votre téléphone.
               </Text>
             </VStack>
 
@@ -112,8 +112,9 @@ export function Hero() {
                 borderRadius="xl"
                 boxShadow="lg"
                 _active={{ transform: 'scale(0.95)' }}
+                onClick={() => window.open('https://play.google.com/store/apps/details?id=com.komon.mobile', '_blank')}
               >
-                Commencer maintenant
+                Télécharger sur Android
               </Button>
 
               <Button
@@ -128,8 +129,9 @@ export function Hero() {
                 borderColor="accent.primary"
                 color="accent.primary"
                 _hover={{ bg: 'pastel.indigo' }}
+                onClick={() => window.open('https://apps.apple.com/app/komon-mobile/id123456789', '_blank')}
               >
-                Voir la démo
+                Télécharger sur iOS
               </Button>
             </HStack>
 
@@ -200,7 +202,7 @@ export function Hero() {
             >
               <Image
                 src="/hero-image.jpg"
-                alt="Événements sportifs locaux"
+                alt="Application mobile KomOn"
                 w="full"
                 h="full"
                 objectFit="cover"
@@ -226,7 +228,10 @@ export function Hero() {
                         <Icon as={Users} color="white" size={32} />
                       </Box>
                       <Text fontSize="lg" fontWeight="semibold">
-                        Événements Sportifs
+                        KomOn Mobile
+                      </Text>
+                      <Text fontSize="sm" textAlign="center">
+                        Application mobile
                       </Text>
                     </VStack>
                   </Box>

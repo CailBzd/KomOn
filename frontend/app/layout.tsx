@@ -1,11 +1,10 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { Providers } from './providers'
-import Header from '@/components/Header'
+import MarketingHeader from '@/components/MarketingHeader'
 import Footer from '@/components/Footer'
 import { Box } from '@chakra-ui/react'
 import { ReactNode } from 'react'
-import { AuthProvider } from '@/lib/api/auth'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -60,15 +59,13 @@ export default function RootLayout({
   return (
     <html lang="fr">
       <body className={inter.className}>
-        <AuthProvider>
-          <Providers>
-            <Header />
-            <Box as="main" pt="70px" minH="100vh" bg="gray.50">
-              {children}
-            </Box>
-            <Footer />
-          </Providers>
-        </AuthProvider>
+        <Providers>
+          <MarketingHeader />
+          <Box as="main" pt="70px" minH="100vh" bg="gray.50">
+            {children}
+          </Box>
+          <Footer />
+        </Providers>
       </body>
     </html>
   )

@@ -14,15 +14,7 @@ import { useAuth } from '../../contexts/AuthContext';
 const { width } = Dimensions.get('window');
 
 export default function DashboardScreen() {
-  const { user, logout } = useAuth();
-
-  const handleLogout = async () => {
-    try {
-      await logout();
-    } catch (error) {
-      console.error('Erreur lors de la déconnexion:', error);
-    }
-  };
+  const { user } = useAuth();
 
   return (
     <>
@@ -43,9 +35,7 @@ export default function DashboardScreen() {
                 <Text style={styles.userName}>{user?.firstName || 'Utilisateur'}</Text>
               </View>
             </View>
-            <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-              <Text style={styles.logoutText}>Déconnexion</Text>
-            </TouchableOpacity>
+
           </View>
 
           {/* Stats Cards */}
@@ -206,17 +196,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#2d3748',
   },
-  logoutButton: {
-    backgroundColor: '#fed7d7',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
-  logoutText: {
-    color: '#c53030',
-    fontSize: 14,
-    fontWeight: '600',
-  },
+
   statsSection: {
     marginBottom: 30,
   },

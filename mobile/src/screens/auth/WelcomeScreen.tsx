@@ -18,7 +18,7 @@ interface WelcomeScreenProps {
 
 export default function WelcomeScreen({ navigation }: WelcomeScreenProps) {
   const handleStartAdventure = () => {
-    navigation.navigate('Signup');
+    navigation.navigate('Pricing');
   };
 
   const handleAlreadyHaveAccount = () => {

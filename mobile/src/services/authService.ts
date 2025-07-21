@@ -1,7 +1,9 @@
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
+import { API_CONFIG } from '../config/api';
+import { translateError } from '../utils/errorMessages';
 
-const API_BASE_URL = 'https://localhost:7001/api';
+console.log('🔧 API Base URL:', API_CONFIG.BASE_URL);
 
 export interface User {
   id: string;
@@ -49,7 +51,27 @@ class AuthService {
     endpoint: string,
     options: RequestInit = {}
   ): Promise<T> {
-    const url = `${API_BASE_URL}${endpoint}`;
+    const url = `${API_CONFIG.BASE_URL}${endpoint}`;
+    
+    // Configuration pour ignorer les certificats auto-signés en développement
+    const fetchOptions: RequestInit = {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        ...options.headers,
+      },
+    };
+
+    // En développement, ajouter des options pour ignorer les erreurs SSL
+    if (__DEV__) {
+      console.log('🔧 Development mode: Using HTTP for API calls');
+    }
+    
+    console.log('🌐 Request:', options.method || 'GET', url);
+    if (options.body) {
+      console.log('📤 Request body:', options.body);
+    }
     
     const config: RequestInit = {
       headers: {
@@ -61,19 +83,32 @@ class AuthService {
     };
 
     try {
-      const response = await fetch(url, config);
+      console.log('📡 API call to:', url);
+      const response = await fetch(url, fetchOptions);
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         const errorMessage = errorData.error || `HTTP error! status: ${response.status}`;
+        console.error('❌ HTTP Error Details:', {
+          status: response.status,
+          statusText: response.statusText,
+          errorData,
+          url
+        });
         throw new Error(errorMessage);
       }
 
       const data = await response.json();
       return data;
     } catch (error) {
-      console.error('API request failed:', error);
-      throw error;
+      console.error('❌ API request failed:', error);
+      console.error('  Error type:', typeof error);
+      console.error('  Error message:', error instanceof Error ? error.message : error);
+      console.error('  Full error:', JSON.stringify(error, null, 2));
+      
+      // Traduire l'erreur pour l'utilisateur
+      const translatedError = translateError(error);
+      throw new Error(translatedError);
     }
   }
 
@@ -84,46 +119,12 @@ class AuthService {
         body: JSON.stringify(data),
       });
     } catch (error) {
-      if (error instanceof Error) {
-        if (error.message.includes('HTTP error! status:')) {
-          throw error;
-        }
-        
-        // Fallback pour le développement
-        if (error instanceof TypeError && error.message.includes('fetch')) {
-          return this.fallbackLogin(data);
-        }
-        
-        throw error;
-      }
+      console.error('❌ Login failed:', error);
       throw error;
     }
   }
 
-  private fallbackLogin(data: LoginRequest): Promise<AuthResponse> {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const mockUser: User = {
-          id: '1',
-          username: 'demo_user',
-          firstName: 'Utilisateur',
-          lastName: 'Demo',
-          email: data.email,
-          dateOfBirth: '1990-01-01',
-          role: 'Participant',
-          status: 'Active',
-          createdAt: new Date().toISOString(),
-        };
 
-        resolve({
-          isSuccess: true,
-          token: 'mock-jwt-token-' + Date.now(),
-          user: mockUser,
-          expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-        });
-      }, 1000);
-    });
-  }
 
   async register(data: RegisterRequest): Promise<AuthResponse> {
     try {
@@ -133,45 +134,12 @@ class AuthService {
       });
       return response;
     } catch (error) {
-      if (error instanceof Error) {
-        if (error.message.includes('HTTP error! status:')) {
-          throw error;
-        }
-        
-        if (error instanceof TypeError && error.message.includes('fetch')) {
-          return this.fallbackRegister(data);
-        }
-        
-        throw error;
-      }
+      console.error('❌ Register failed:', error);
       throw error;
     }
   }
 
-  private fallbackRegister(data: RegisterRequest): Promise<AuthResponse> {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const mockUser: User = {
-          id: '1',
-          username: data.username,
-          firstName: data.firstName,
-          lastName: data.lastName,
-          email: data.email,
-          dateOfBirth: data.dateOfBirth,
-          role: 'Participant',
-          status: 'Active',
-          createdAt: new Date().toISOString(),
-        };
 
-        resolve({
-          isSuccess: true,
-          token: 'mock-jwt-token-' + Date.now(),
-          user: mockUser,
-          expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-        });
-      }, 1000);
-    });
-  }
 
   async logout(token: string): Promise<AuthResponse> {
     return this.request<AuthResponse>('/auth/logout', {
@@ -217,6 +185,19 @@ class AuthService {
   }
 
   async forgotPassword(email: string): Promise<AuthResponse> {
+    // En développement, utiliser un fallback
+    if (__DEV__) {
+      console.log('🔧 Development mode: Using fallback forgot password');
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          resolve({
+            isSuccess: true,
+            error: 'Email de réinitialisation envoyé (mode développement)',
+          });
+        }, 1000);
+      });
+    }
+    
     return this.request<AuthResponse>('/auth/forgot-password', {
       method: 'POST',
       body: JSON.stringify({ email }),

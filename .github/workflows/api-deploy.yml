@@ -1,0 +1,87 @@
+name: API CI/CD
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/api-deploy.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'backend/**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+    
+    - name: Restore dependencies
+      working-directory: ./backend
+      run: dotnet restore
+    
+    - name: Build
+      working-directory: ./backend
+      run: dotnet build --no-restore
+    
+    - name: Test
+      working-directory: ./backend
+      run: dotnet test --no-build --verbosity normal
+
+  build-and-deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+    
+    - name: Restore dependencies
+      working-directory: ./backend
+      run: dotnet restore
+    
+    - name: Build
+      working-directory: ./backend
+      env:
+        SCALEWAY_ACCESS_KEY: ${{ secrets.SCALEWAY_ACCESS_KEY }}
+        SCALEWAY_SECRET_KEY: ${{ secrets.SCALEWAY_SECRET_KEY }}
+        SCALEWAY_DATABASE_URL: ${{ secrets.SCALEWAY_DATABASE_URL }}
+        JWT_SECRET: ${{ secrets.JWT_SECRET }}
+        DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      run: dotnet build --configuration Release --no-restore
+    
+    - name: Publish
+      working-directory: ./backend
+      run: dotnet publish KomOn.API/KomOn.API.csproj -c Release -o ./publish
+    
+    - name: Deploy to server
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.API_DEPLOY_HOST }}
+        username: ${{ secrets.API_DEPLOY_USER }}
+        key: ${{ secrets.API_DEPLOY_SSH_KEY }}
+        port: ${{ secrets.API_DEPLOY_PORT }}
+        script: |
+          cd /var/www/api.komon.ptilab.fr
+          git pull origin main
+          dotnet restore
+          export SCALEWAY_ACCESS_KEY="${{ secrets.SCALEWAY_ACCESS_KEY }}"
+          export SCALEWAY_SECRET_KEY="${{ secrets.SCALEWAY_SECRET_KEY }}"
+          export SCALEWAY_DATABASE_URL="${{ secrets.SCALEWAY_DATABASE_URL }}"
+          export JWT_SECRET="${{ secrets.JWT_SECRET }}"
+          export DB_PASSWORD="${{ secrets.DB_PASSWORD }}"
+          dotnet build --configuration Release
+          sudo systemctl restart komon-api
+          echo "API deployed successfully!" 

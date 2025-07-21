@@ -1,7 +1,7 @@
 "use client";
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://localhost:5001/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://192.168.1.254:5001/api';
 
 // Debug: afficher la valeur de l'API_BASE_URL
 console.log('🔧 API_BASE_URL:', API_BASE_URL);
