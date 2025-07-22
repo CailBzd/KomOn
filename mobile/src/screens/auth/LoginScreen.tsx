@@ -115,6 +115,8 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
         paddingTop={0}
         paddingBottom={0}
         paddingHorizontal={20}
+        extraTopPadding={5} // Marge supplémentaire pour les appareils complexes
+        extraBottomPadding={5} // Marge supplémentaire pour la barre de navigation
       >
         <DeviceAwareHeader
           title="Connexion"
@@ -123,6 +125,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
           backgroundColor="#f7fafc"
           textColor="#2d3748"
           elevation={0}
+          extraTopPadding={5} // Marge supplémentaire pour les appareils complexes
         />
         
         <KeyboardAvoidingView 

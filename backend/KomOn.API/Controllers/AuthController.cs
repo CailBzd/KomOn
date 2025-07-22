@@ -4,6 +4,7 @@ using KomOn.Core.Interfaces;
 using KomOn.API.Services;
 using AutoMapper;
 using System.Text.Json;
+using Microsoft.AspNetCore.Authorization;
 
 namespace KomOn.API.Controllers;
 
@@ -592,6 +593,7 @@ public class AuthController : ControllerBase
     /// Déconnexion
     /// </summary>
     [HttpPost("logout")]
+    [AllowAnonymous] // Permettre la déconnexion même avec un token expiré
     public async Task<ActionResult<AuthResponse>> Logout([FromBody] string token)
     {
         if (string.IsNullOrWhiteSpace(token))
@@ -603,22 +605,49 @@ public class AuthController : ControllerBase
             });
         }
 
-        var result = await _authService.LogoutAsync(token);
-
-        if (!result.IsSuccess)
+        try
         {
-            return BadRequest(new AuthResponse
+            // Essayer de valider le token d'abord
+            var validationResult = await _authService.ValidateTokenAsync(token);
+            
+            // Si le token est invalide ou expiré, on considère que la déconnexion est réussie
+            // car l'utilisateur ne peut plus accéder aux ressources protégées
+            if (!validationResult.IsSuccess)
             {
-                IsSuccess = false,
-                Error = result.Error
+                return Ok(new AuthResponse
+                {
+                    IsSuccess = true,
+                    Error = "Session expirée. Déconnexion réussie."
+                });
+            }
+
+            var result = await _authService.LogoutAsync(token);
+
+            if (!result.IsSuccess)
+            {
+                return BadRequest(new AuthResponse
+                {
+                    IsSuccess = false,
+                    Error = result.Error
+                });
+            }
+
+            return Ok(new AuthResponse
+            {
+                IsSuccess = true,
+                Error = "Déconnexion réussie."
             });
         }
-
-        return Ok(new AuthResponse
+        catch (Exception ex)
         {
-            IsSuccess = true,
-            Error = "Déconnexion réussie."
-        });
+            // En cas d'erreur, on considère que la déconnexion est réussie
+            // car l'utilisateur ne peut plus accéder aux ressources
+            return Ok(new AuthResponse
+            {
+                IsSuccess = true,
+                Error = "Déconnexion réussie."
+            });
+        }
     }
 
     // Méthodes OPTIONS pour CORS

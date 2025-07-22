@@ -8,6 +8,7 @@ import {
   ViewStyle,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useDeviceInfo, getDeviceMargins } from '../utils/deviceUtils';
 
 const { width, height } = Dimensions.get('window');
 
@@ -22,6 +23,8 @@ interface SafeScreenProps {
   paddingTop?: number;
   paddingBottom?: number;
   paddingHorizontal?: number;
+  extraTopPadding?: number; // Padding supplémentaire pour les appareils avec notch/Dynamic Island
+  extraBottomPadding?: number; // Padding supplémentaire pour la barre de navigation
 }
 
 export default function SafeScreen({
@@ -35,24 +38,45 @@ export default function SafeScreen({
   paddingTop = 0,
   paddingBottom = 0,
   paddingHorizontal = 20,
+  extraTopPadding = 0,
+  extraBottomPadding = 0,
 }: SafeScreenProps) {
   const insets = useSafeAreaInsets();
+  const deviceInfo = useDeviceInfo();
+  const deviceMargins = getDeviceMargins(deviceInfo);
 
   const getStatusBarHeight = () => {
-    if (Platform.OS === 'ios') {
-      return insets.top;
-    }
-    return StatusBar.currentHeight || 0;
+    const baseHeight = deviceInfo.statusBarHeight;
+    const extraMargin = deviceMargins.statusBarMargin;
+    return baseHeight + extraMargin + extraTopPadding;
   };
 
   const getBottomInset = () => {
-    return insets.bottom;
+    const baseInset = deviceInfo.bottomInset;
+    const extraMargin = deviceMargins.navigationExtraBottom;
+    return baseInset + extraMargin + extraBottomPadding;
+  };
+
+  const getHorizontalInsets = () => {
+    // Gérer les bords arrondis et les encoches latérales
+    const leftInset = edges.includes('left') ? Math.max(insets.left, 5) : 0;
+    const rightInset = edges.includes('right') ? Math.max(insets.right, 5) : 0;
+    return { leftInset, rightInset };
   };
 
   const getDynamicPadding = () => {
-    const topPadding = edges.includes('top') ? Math.max(getStatusBarHeight(), paddingTop) : paddingTop;
-    const bottomPadding = edges.includes('bottom') ? Math.max(getBottomInset(), paddingBottom) : paddingBottom;
-    const horizontalPadding = edges.includes('left') && edges.includes('right') ? paddingHorizontal : 0;
+    const topPadding = edges.includes('top') 
+      ? Math.max(getStatusBarHeight(), paddingTop) + extraTopPadding 
+      : paddingTop;
+    
+    const bottomPadding = edges.includes('bottom') 
+      ? Math.max(getBottomInset(), paddingBottom) + extraBottomPadding 
+      : paddingBottom;
+    
+    const { leftInset, rightInset } = getHorizontalInsets();
+    const horizontalPadding = edges.includes('left') && edges.includes('right') 
+      ? Math.max(paddingHorizontal, leftInset, rightInset, deviceMargins.horizontalMargin) 
+      : 0;
 
     return {
       paddingTop: topPadding,

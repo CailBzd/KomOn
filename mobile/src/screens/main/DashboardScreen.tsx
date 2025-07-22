@@ -19,9 +19,9 @@ export default function DashboardScreen() {
   return (
     <>
       <StatusBar barStyle="dark-content" backgroundColor="#f7fafc" />
-      <SafeAreaView style={styles.safeArea}>
+      <SafeAreaView style={[styles.safeArea, { paddingTop: 10 }]}>
         <ScrollView 
-          contentContainerStyle={styles.scrollContainer}
+          contentContainerStyle={[styles.scrollContainer, { paddingTop: 15 }]}
           showsVerticalScrollIndicator={false}
         >
           {/* Header */}

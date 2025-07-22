@@ -127,6 +127,8 @@ public class UserService : IUserService
             existingUser.DateOfBirth = request.DateOfBirth.Value;
         if (!string.IsNullOrEmpty(request.Bio))
             existingUser.Bio = request.Bio;
+        if (!string.IsNullOrEmpty(request.ProfilePictureUrl))
+            existingUser.ProfilePictureUrl = request.ProfilePictureUrl;
         if (!string.IsNullOrEmpty(request.Role))
             existingUser.Role = request.Role;
         if (!string.IsNullOrEmpty(request.Status))
@@ -169,6 +171,8 @@ public class UserService : IUserService
             user.DateOfBirth = request.DateOfBirth.Value;
         if (!string.IsNullOrEmpty(request.Bio))
             user.Bio = request.Bio;
+        if (!string.IsNullOrEmpty(request.ProfilePictureUrl))
+            user.ProfilePictureUrl = request.ProfilePictureUrl;
         
         user.UpdatedAt = DateTime.UtcNow;
         
@@ -180,7 +184,8 @@ public class UserService : IUserService
             LastName = user.LastName,
             PhoneNumber = user.PhoneNumber,
             DateOfBirth = user.DateOfBirth,
-            Bio = user.Bio
+            Bio = user.Bio,
+            ProfilePictureUrl = user.ProfilePictureUrl
         };
         
         var result = await UpdateAsync(id, updateRequest);
@@ -193,7 +198,14 @@ public class UserService : IUserService
         if (user == null) return false;
         user.ProfilePictureUrl = imageUrl;
         user.UpdatedAt = DateTime.UtcNow;
-        var result = await UpdateAsync(id, new UpdateUserRequest { });
+        
+        // Créer un UpdateUserRequest avec l'URL de la photo
+        var updateRequest = new UpdateUserRequest
+        {
+            ProfilePictureUrl = imageUrl
+        };
+        
+        var result = await UpdateAsync(id, updateRequest);
         return result != null;
     }
 

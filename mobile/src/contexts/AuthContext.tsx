@@ -92,11 +92,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setLoading(true);
     try {
       if (token) {
-        await authService.logout(token);
+        const response = await authService.logout(token);
+        console.log('🔐 Réponse logout:', response);
+        
+        // Si la réponse indique un succès (même avec une erreur 401 gérée), on continue
+        if (response.isSuccess) {
+          console.log('✅ Déconnexion réussie');
+        } else {
+          console.log('⚠️ Déconnexion avec avertissement:', response.error);
+        }
       }
     } catch (error) {
-      console.error('Erreur lors de la déconnexion:', error);
+      console.error('❌ Erreur lors de la déconnexion:', error);
+      // Même en cas d'erreur, on nettoie les données locales
     } finally {
+      // Toujours nettoyer les données locales, même en cas d'erreur
       setToken(null);
       setUser(null);
       await SecureStore.deleteItemAsync('auth_token');

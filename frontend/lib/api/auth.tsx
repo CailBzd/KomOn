@@ -224,10 +224,24 @@ class AuthService {
   }
 
   async logout(token: string): Promise<AuthResponse> {
-    return this.request<AuthResponse>('/auth/logout', {
-      method: 'POST',
-      body: JSON.stringify(token),
-    });
+    try {
+      return await this.request<AuthResponse>('/auth/logout', {
+        method: 'POST',
+        body: JSON.stringify(token),
+      });
+    } catch (error: any) {
+      // Si l'erreur est 401 (token expiré), on considère que la déconnexion est réussie
+      if (error.message && error.message.includes('401')) {
+        return {
+          isSuccess: true,
+          error: 'Session expirée. Déconnexion réussie.',
+          token: null,
+          user: null,
+          expiresAt: null
+        };
+      }
+      throw error;
+    }
   }
 
   async refreshToken(refreshToken: string): Promise<AuthResponse> {

@@ -2,14 +2,13 @@ import React from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   TouchableOpacity,
+  StyleSheet,
   Platform,
-  Dimensions,
+  ViewStyle,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
-const { width } = Dimensions.get('window');
+import { useDeviceInfo, getDeviceMargins } from '../utils/deviceUtils';
 
 interface DeviceAwareHeaderProps {
   title?: string;
@@ -22,7 +21,8 @@ interface DeviceAwareHeaderProps {
   backButtonText?: string;
   elevation?: number;
   transparent?: boolean;
-  style?: any;
+  style?: ViewStyle;
+  extraTopPadding?: number; // Padding supplémentaire pour les appareils complexes
 }
 
 export default function DeviceAwareHeader({
@@ -37,19 +37,21 @@ export default function DeviceAwareHeader({
   elevation = 2,
   transparent = false,
   style,
+  extraTopPadding = 0,
 }: DeviceAwareHeaderProps) {
   const insets = useSafeAreaInsets();
+  const deviceInfo = useDeviceInfo();
+  const deviceMargins = getDeviceMargins(deviceInfo);
 
   const getStatusBarHeight = () => {
-    if (Platform.OS === 'ios') {
-      return insets.top;
-    }
-    return 0; // Android gère automatiquement
+    const baseHeight = deviceInfo.statusBarHeight;
+    const extraMargin = deviceMargins.headerExtraTop;
+    return baseHeight + extraMargin + extraTopPadding;
   };
 
   const getHeaderHeight = () => {
     const statusBarHeight = getStatusBarHeight();
-    const headerHeight = 56; // Hauteur standard du header
+    const headerHeight = deviceInfo.isTablet ? 64 : 56; // Hauteur adaptée selon le type d'appareil
     return statusBarHeight + headerHeight;
   };
 
@@ -139,18 +141,25 @@ const styles = StyleSheet.create({
   leftSection: {
     flex: 1,
     alignItems: 'flex-start',
+    minWidth: 60, // Assurer une zone de clic minimale
   },
   centerSection: {
     flex: 2,
     alignItems: 'center',
+    paddingHorizontal: 8, // Espacement pour éviter les chevauchements
   },
   rightSection: {
     flex: 1,
     alignItems: 'flex-end',
+    minWidth: 60, // Assurer une zone de clic minimale
   },
   backButton: {
     padding: 8,
     borderRadius: 8,
+    minWidth: 44, // Zone de clic minimale recommandée
+    minHeight: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   backButtonText: {
     fontSize: 24,
@@ -160,6 +169,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     textAlign: 'center',
+    flex: 1, // Permettre au titre de s'adapter
   },
   titleTransparent: {
     textShadowColor: 'rgba(0, 0, 0, 0.5)',

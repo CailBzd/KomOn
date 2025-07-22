@@ -161,7 +161,14 @@ public class UserController : ControllerBase
                 return StatusCode(500, new { error = "Erreur lors de la mise à jour de la photo de profil." });
             }
 
-            return Ok(new { message = "Photo de profil mise à jour avec succès." });
+            // Récupérer l'utilisateur mis à jour
+            var updatedUser = await _userService.GetByIdAsync(userId);
+            var userDto = _mapper.Map<ApiDTOs.UserDto>(updatedUser);
+
+            return Ok(new { 
+                message = "Photo de profil mise à jour avec succès.",
+                user = userDto 
+            });
         }
         catch (Exception ex)
         {

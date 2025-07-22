@@ -142,10 +142,39 @@ class AuthService {
 
 
   async logout(token: string): Promise<AuthResponse> {
-    return this.request<AuthResponse>('/auth/logout', {
-      method: 'POST',
-      body: JSON.stringify(token),
-    });
+    try {
+      console.log('🔐 Tentative de déconnexion...');
+      const response = await this.request<AuthResponse>('/auth/logout', {
+        method: 'POST',
+        body: JSON.stringify(token),
+      });
+      console.log('✅ Déconnexion réussie côté serveur');
+      return response;
+    } catch (error: any) {
+      console.log('⚠️ Erreur lors de la déconnexion:', error.message);
+      
+      // Si l'erreur est 401 (token expiré), on considère que la déconnexion est réussie
+      if (error.message && error.message.includes('401')) {
+        console.log('🔄 Token expiré, déconnexion locale réussie');
+        return {
+          isSuccess: true,
+          error: 'Session expirée. Déconnexion réussie.',
+          token: null,
+          user: null,
+          expiresAt: null
+        };
+      }
+      
+      // Pour les autres erreurs, on considère aussi que la déconnexion est réussie localement
+      console.log('🔄 Erreur réseau, déconnexion locale réussie');
+      return {
+        isSuccess: true,
+        error: 'Déconnexion locale réussie (erreur réseau)',
+        token: null,
+        user: null,
+        expiresAt: null
+      };
+    }
   }
 
   async getProfile(): Promise<AuthResponse> {
@@ -175,13 +204,120 @@ class AuthService {
       throw new Error('Token d\'authentification requis');
     }
     
-    return this.request<AuthResponse>('/user/profile', {
-      method: 'PUT',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify(data),
-    });
+    try {
+      const response = await this.request<any>('/user/profile', {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+      });
+
+      // Le backend retourne { message: string, user: UserDto }
+      // On doit adapter cette réponse au format AuthResponse attendu
+      if (response && response.user) {
+        return {
+          isSuccess: true,
+          user: {
+            id: response.user.id,
+            username: response.user.username,
+            firstName: response.user.firstName,
+            lastName: response.user.lastName,
+            email: response.user.email,
+            phoneNumber: response.user.phoneNumber,
+            dateOfBirth: response.user.dateOfBirth,
+            bio: response.user.bio,
+            profilePictureUrl: response.user.profilePictureUrl,
+            role: response.user.role,
+            status: response.user.status,
+            createdAt: response.user.createdAt,
+          },
+          error: undefined,
+        };
+      } else {
+        throw new Error('Réponse invalide du serveur');
+      }
+    } catch (error: any) {
+      // Si l'erreur vient du backend avec un message d'erreur
+      if (error.message && error.message.includes('Ce pseudo est déjà utilisé')) {
+        return {
+          isSuccess: false,
+          error: 'Ce pseudo est déjà utilisé.',
+          user: undefined,
+        };
+      }
+      
+      // Pour les autres erreurs, on les propage
+      throw error;
+    }
+  }
+
+  async updateProfilePicture(data: { imageUrl: string }): Promise<AuthResponse> {
+    const token = await SecureStore.getItemAsync('auth_token');
+    if (!token) {
+      throw new Error('Token d\'authentification requis');
+    }
+    
+    try {
+      console.log('🖼️ Upload de la photo de profil:', data.imageUrl);
+      
+      const response = await this.request<any>('/user/profile/picture', {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+      });
+
+      console.log('📡 Réponse du serveur pour la photo:', response);
+
+      // Le backend retourne { message: string, user: UserDto }
+      // On doit adapter cette réponse au format AuthResponse attendu
+      if (response && response.user) {
+        return {
+          isSuccess: true,
+          user: {
+            id: response.user.id,
+            username: response.user.username,
+            firstName: response.user.firstName,
+            lastName: response.user.lastName,
+            email: response.user.email,
+            phoneNumber: response.user.phoneNumber,
+            dateOfBirth: response.user.dateOfBirth,
+            bio: response.user.bio,
+            profilePictureUrl: response.user.profilePictureUrl,
+            role: response.user.role,
+            status: response.user.status,
+            createdAt: response.user.createdAt,
+          },
+          error: undefined,
+        };
+      } else if (response && response.message) {
+        // Si on a seulement un message de succès mais pas d'utilisateur
+        console.log('⚠️ Réponse avec message mais sans utilisateur:', response.message);
+        return {
+          isSuccess: true,
+          error: response.message,
+          user: undefined,
+        };
+      } else {
+        console.error('❌ Réponse invalide du serveur:', response);
+        throw new Error('Réponse invalide du serveur');
+      }
+    } catch (error: any) {
+      console.error('❌ Erreur lors de la mise à jour de la photo:', error);
+      
+      // Si l'erreur contient un message d'erreur du serveur
+      if (error.message && error.message.includes('L\'URL de l\'image est requise')) {
+        return {
+          isSuccess: false,
+          error: 'L\'URL de l\'image est requise.',
+          user: undefined,
+        };
+      }
+      
+      throw error;
+    }
   }
 
   async forgotPassword(email: string): Promise<AuthResponse> {

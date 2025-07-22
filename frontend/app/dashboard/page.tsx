@@ -45,7 +45,6 @@ import {
   FaTrophy, 
   FaUsers, 
   FaFilter, 
-  FaTrendingUp, 
   FaCreditCard 
 } from 'react-icons/fa'
 import { useState, useEffect } from 'react'
@@ -85,7 +84,7 @@ const sports = [
 ]
 
 export default function DashboardPage() {
-  const { user, isAuthenticated, loading, logout } = useAuth()
+  const { user, isAuthenticated, loading } = useAuth()
   const router = useRouter()
   const toast = useToast()
   
@@ -201,23 +200,7 @@ export default function DashboardPage() {
     setFilteredEvents(filtered)
   }, [events, searchTerm, selectedSport, selectedLocation])
 
-  const handleLogout = async () => {
-    try {
-      await logout()
-      router.push('/')
-      toast({
-        title: 'Déconnexion réussie',
-        status: 'success',
-        duration: 3000,
-      })
-    } catch (error) {
-      toast({
-        title: 'Erreur lors de la déconnexion',
-        status: 'error',
-        duration: 3000,
-      })
-    }
-  }
+
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('fr-FR', {
@@ -269,9 +252,6 @@ export default function DashboardPage() {
                 <Badge colorScheme="teal" fontSize="md" px={3} py={1}>
                   {userStats.credits} crédits
                 </Badge>
-                <Button colorScheme="red" variant="outline" onClick={handleLogout}>
-                  Déconnexion
-                </Button>
               </HStack>
             </HStack>
           </CardBody>

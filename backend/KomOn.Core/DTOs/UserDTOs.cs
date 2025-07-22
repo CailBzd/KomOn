@@ -57,6 +57,9 @@ public class UpdateUserRequest
     [MaxLength(1000)]
     public string? Bio { get; set; }
     
+    [MaxLength(255)]
+    public string? ProfilePictureUrl { get; set; }
+    
     public string? Role { get; set; }
     
     public string? Status { get; set; }
@@ -81,6 +84,9 @@ public class UpdateProfileRequest
     
     [MaxLength(1000)]
     public string? Bio { get; set; }
+    
+    [MaxLength(255)]
+    public string? ProfilePictureUrl { get; set; }
 }
 
 public class UserResponse
