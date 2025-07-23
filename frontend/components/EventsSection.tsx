@@ -17,7 +17,7 @@ import { Calendar, MapPin, Users, Clock } from 'lucide-react'
 const events = [
   {
     id: 1,
-    title: 'Tournoi de Football Amateur',
+    title: 'Tournoi de Football Amateur!',
     sport: 'Football',
     date: '15 Déc 2024',
     time: '14:00',
@@ -29,7 +29,7 @@ const events = [
   },
   {
     id: 2,
-    title: 'Course à Pied - 10km',
+    title: 'Course à Pied - 10km!',
     sport: 'Running',
     date: '22 Déc 2024',
     time: '09:00',
@@ -41,7 +41,7 @@ const events = [
   },
   {
     id: 3,
-    title: 'Match de Tennis en Double',
+    title: 'Match de Tennis en Double!',
     sport: 'Tennis',
     date: '18 Déc 2024',
     time: '16:00',
@@ -53,7 +53,7 @@ const events = [
   },
   {
     id: 4,
-    title: 'Séance de Yoga en Plein Air',
+    title: 'Séance de Yoga en Plein Air!',
     sport: 'Yoga',
     date: '20 Déc 2024',
     time: '07:00',
@@ -75,15 +75,18 @@ export function EventsSection() {
           {/* Header */}
           <VStack spacing="6" textAlign="center" maxW="3xl">
             <Box
-              bg="pastel.green"
-              color="accent.success"
+              bg="orange.500"
+              color="white"
               px="4"
               py="2"
               borderRadius="full"
               fontSize="sm"
-              fontWeight="semibold"
+              fontWeight="bold"
+              boxShadow="lg"
+              border="2px solid"
+              borderColor="orange.300"
             >
-              🏃‍♂️ Événements à venir
+              🏃‍♂️ Événements à venir!
             </Box>
 
             <Heading
@@ -92,32 +95,30 @@ export function EventsSection() {
               fontWeight="bold"
               color="gray.800"
             >
-              Découvrez les{' '}
+              Découvre les{' '}
               <Text
                 as="span"
-                bgGradient="linear(to-r, accent.primary, accent.secondary)"
+                bgGradient="linear(to-r, orange.500, blue.600)"
                 bgClip="text"
               >
-                événements populaires
-              </Text>
+                événements sportifs
+              </Text>{' '}
+              de ta région!
             </Heading>
 
             <Text
               fontSize="xl"
               color="gray.600"
+              maxW="2xl"
               lineHeight="1.6"
             >
-              Rejoignez des événements sportifs passionnants dans votre région. 
-              Des activités pour tous les niveaux et tous les goûts.
+              Rejoins des événements incroyables et rencontre des sportifs motivés 
+              qui partagent ta passion! KomOn!
             </Text>
           </VStack>
 
           {/* Events Grid */}
-          <SimpleGrid
-            columns={{ base: 1, md: 2, lg: 4 }}
-            spacing="8"
-            w="full"
-          >
+          <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing="8" w="full">
             {events.map((event) => (
               <Box
                 key={event.id}
@@ -125,154 +126,168 @@ export function EventsSection() {
                 borderRadius="2xl"
                 overflow="hidden"
                 boxShadow="lg"
-                border="1px solid"
-                borderColor="gray.100"
                 transition="all 0.3s"
                 _hover={{
-                  transform: 'translateY(-4px)',
+                  transform: 'translateY(-8px)',
                   boxShadow: 'xl',
                 }}
-                cursor="pointer"
+                border="1px solid"
+                borderColor="gray.100"
               >
                 {/* Event Image */}
                 <Box
-                  h="48"
-                  bgGradient="linear(to-br, pastel.blue, pastel.teal)"
+                  h="200px"
+                  bgGradient="linear(to-br, orange.400, blue.600)"
                   position="relative"
-                  overflow="hidden"
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="center"
                 >
-                  <Image
-                    src={event.image}
-                    alt={event.title}
-                    w="full"
-                    h="full"
-                    objectFit="cover"
-                    fallback={
-                      <Box
-                        w="full"
-                        h="full"
-                        bgGradient="linear(to-br, pastel.blue, pastel.teal)"
-                        display="flex"
-                        alignItems="center"
-                        justifyContent="center"
-                      >
-                        <Text
-                          fontSize="2xl"
-                          fontWeight="bold"
-                          color="white"
-                          textAlign="center"
-                        >
-                          {event.sport}
-                        </Text>
-                      </Box>
-                    }
-                  />
-
-                  {/* Status Badge */}
+                  <Text color="white" fontSize="4xl" fontWeight="bold">
+                    {event.sport.charAt(0)}
+                  </Text>
                   <Badge
                     position="absolute"
-                    top="4"
-                    right="4"
+                    top="3"
+                    right="3"
                     colorScheme={event.status === 'disponible' ? 'green' : 'red'}
                     borderRadius="full"
                     px="3"
                     py="1"
-                    fontSize="sm"
-                    fontWeight="semibold"
+                    fontSize="xs"
+                    fontWeight="bold"
                   >
-                    {event.status === 'disponible' ? 'Disponible' : 'Complet'}
-                  </Badge>
-
-                  {/* Sport Badge */}
-                  <Badge
-                    position="absolute"
-                    top="4"
-                    left="4"
-                    bg="white"
-                    color="accent.primary"
-                    borderRadius="full"
-                    px="3"
-                    py="1"
-                    fontSize="sm"
-                    fontWeight="semibold"
-                  >
-                    {event.sport}
+                    {event.status === 'disponible' ? 'Disponible!' : 'Complet!'}
                   </Badge>
                 </Box>
 
-                {/* Event Details */}
+                {/* Event Content */}
                 <VStack spacing="4" p="6" align="stretch">
-                  <Heading
-                    as="h3"
-                    size="md"
-                    fontWeight="semibold"
-                    color="gray.800"
-                    noOfLines={2}
-                  >
-                    {event.title}
-                  </Heading>
+                  <VStack spacing="2" align="stretch">
+                    <Text
+                      fontSize="lg"
+                      fontWeight="bold"
+                      color="gray.800"
+                      lineHeight="1.4"
+                    >
+                      {event.title}
+                    </Text>
+                    <Text
+                      fontSize="sm"
+                      color="gray.600"
+                      fontWeight="medium"
+                    >
+                      {event.sport}
+                    </Text>
+                  </VStack>
 
                   <VStack spacing="3" align="stretch">
-                    <HStack spacing="3" color="gray.600">
-                      <Calendar size={16} />
-                      <Text fontSize="sm">{event.date} à {event.time}</Text>
+                    <HStack spacing="3">
+                      <Calendar size={16} color="#FF6B35" />
+                      <Text fontSize="sm" color="gray.600">
+                        {event.date} à {event.time}
+                      </Text>
                     </HStack>
 
-                    <HStack spacing="3" color="gray.600">
-                      <MapPin size={16} />
-                      <Text fontSize="sm">{event.location}</Text>
+                    <HStack spacing="3">
+                      <MapPin size={16} color="#1E3A8A" />
+                      <Text fontSize="sm" color="gray.600">
+                        {event.location}
+                      </Text>
                     </HStack>
 
-                    <HStack spacing="3" color="gray.600">
-                      <Users size={16} />
-                      <Text fontSize="sm">{event.participants} participants</Text>
+                    <HStack spacing="3">
+                      <Users size={16} color="#10B981" />
+                      <Text fontSize="sm" color="gray.600">
+                        {event.participants} participants
+                      </Text>
                     </HStack>
 
-                    <HStack spacing="3" color="gray.600">
-                      <Clock size={16} />
-                      <Text fontSize="sm">{event.price}</Text>
+                    <HStack spacing="3">
+                      <Clock size={16} color="#F59E0B" />
+                      <Text fontSize="sm" color="gray.600">
+                        {event.price}
+                      </Text>
                     </HStack>
                   </VStack>
 
                   <Box
-                    bg={event.status === 'disponible' ? 'accent.primary' : 'gray.400'}
+                    bgGradient="linear(to-r, orange.500, orange.400)"
                     color="white"
                     py="3"
                     px="4"
                     borderRadius="xl"
                     textAlign="center"
-                    fontWeight="semibold"
+                    fontWeight="bold"
                     cursor="pointer"
                     transition="all 0.3s"
                     _hover={{
-                      bg: event.status === 'disponible' ? 'accent.secondary' : 'gray.500',
+                      bgGradient: 'linear(to-r, orange.600, orange.500)',
                       transform: 'scale(1.02)',
+                      boxShadow: 'lg',
                     }}
                   >
-                    {event.status === 'disponible' ? 'S\'inscrire' : 'Liste d\'attente'}
+                    Rejoins l'événement!
                   </Box>
                 </VStack>
               </Box>
             ))}
           </SimpleGrid>
 
-          {/* View All Button */}
-          <Box
-            bg="accent.primary"
-            color="white"
-            px="8"
-            py="4"
-            borderRadius="xl"
-            fontWeight="semibold"
-            cursor="pointer"
-            transition="all 0.3s"
-            _hover={{
-              bg: 'accent.secondary',
-              transform: 'scale(1.05)',
-            }}
-          >
-            Voir tous les événements
-          </Box>
+          {/* Call to Action */}
+          <VStack spacing="6" pt="8">
+            <Text
+              fontSize="xl"
+              color="gray.700"
+              fontWeight="semibold"
+            >
+              Tu ne trouves pas ton événement? KomOn!
+            </Text>
+            
+            <Box
+              bgGradient="linear(to-r, orange.500, blue.600)"
+              p="8"
+              borderRadius="2xl"
+              boxShadow="xl"
+              textAlign="center"
+              maxW="2xl"
+              w="full"
+            >
+              <VStack spacing="4">
+                <Text
+                  fontSize="2xl"
+                  color="white"
+                  fontWeight="bold"
+                >
+                  Crée ton propre événement!
+                </Text>
+                <Text
+                  color="orange.100"
+                  fontSize="lg"
+                  lineHeight="1.6"
+                >
+                  Organise des événements sportifs et rejoins la communauté KomOn!
+                </Text>
+                <Box
+                  bg="white"
+                  color="orange.500"
+                  py="3"
+                  px="6"
+                  borderRadius="xl"
+                  fontWeight="bold"
+                  cursor="pointer"
+                  transition="all 0.3s"
+                  _hover={{
+                    bg: 'orange.50',
+                    transform: 'scale(1.02)',
+                    boxShadow: 'lg',
+                  }}
+                >
+                  Créer un événement!
+                </Box>
+              </VStack>
+            </Box>
+          </VStack>
         </VStack>
       </Container>
     </Box>

@@ -14,8 +14,8 @@ import { ArrowRight, Download, Smartphone } from 'lucide-react'
 
 export function CTA() {
   const bgGradient = useColorModeValue(
-    'linear(to-br, pastel.green, pastel.teal)',
-    'linear(to-br, gray.800, gray.900)'
+    'linear(to-br, orange.400, blue.600)',
+    'linear(to-br, orange.500, blue.700)'
   )
 
   return (
@@ -25,7 +25,7 @@ export function CTA() {
       position="relative"
       overflow="hidden"
     >
-      {/* Background Pattern */}
+      {/* Background Pattern - Triangles dynamiques */}
       <Box
         position="absolute"
         top="0"
@@ -33,7 +33,7 @@ export function CTA() {
         right="0"
         bottom="0"
         opacity="0.1"
-        backgroundImage="url('data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='4'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')"
+        backgroundImage="url('data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Cpolygon points='30,5 55,45 5,45'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')"
       />
 
       <Container maxW="container.xl" position="relative" zIndex="1">
@@ -44,27 +44,29 @@ export function CTA() {
               as="h2"
               size="2xl"
               fontWeight="bold"
-              color="gray.800"
+              color="white"
             >
-              Téléchargez l'app{' '}
+              Prêt à bouger?{' '}
               <Text
                 as="span"
-                bgGradient="linear(to-r, accent.primary, accent.secondary)"
+                bgGradient="linear(to-r, white, orange.200)"
                 bgClip="text"
+                fontSize="3xl"
+                fontWeight="extrabold"
               >
-                KomOn Mobile
-              </Text>{' '}
-              maintenant !
+                KomOn!
+              </Text>
             </Heading>
 
             <Text
               fontSize="xl"
-              color="gray.600"
+              color="white"
               maxW="2xl"
               lineHeight="1.6"
+              fontWeight="medium"
             >
-              Rejoignez la communauté sportive de votre région en téléchargeant 
-              l'application mobile KomOn. Disponible sur iOS et Android.
+              Rejoins la communauté énergique de sportifs et d'événements qui te poussent à bouger! 
+              Télécharge l'application mobile KomOn! maintenant!
             </Text>
 
             <HStack
@@ -74,151 +76,151 @@ export function CTA() {
             >
               <Button
                 size="lg"
-                bg="accent.primary"
+                bg="orange.500"
                 color="white"
-                _hover={{ bg: 'accent.secondary' }}
-                rightIcon={<ArrowRight size={20} />}
+                _hover={{ bg: 'orange.600', transform: 'translateY(-2px)', boxShadow: 'xl' }}
+                _active={{ bg: 'orange.700' }}
+                rightIcon={<ArrowRight />}
                 px="8"
                 py="6"
                 fontSize="lg"
-                fontWeight="semibold"
+                fontWeight="bold"
                 borderRadius="xl"
-                boxShadow="lg"
-                _active={{ transform: 'scale(0.95)' }}
+                boxShadow="xl"
+                transition="all 0.3s"
                 onClick={() => window.open('https://play.google.com/store/apps/details?id=com.komon.mobile', '_blank')}
               >
-                Télécharger sur Android
+                Télécharger sur Android!
               </Button>
 
               <Button
                 size="lg"
                 variant="outline"
-                leftIcon={<Download size={20} />}
+                leftIcon={<Download />}
                 px="8"
                 py="6"
                 fontSize="lg"
-                fontWeight="semibold"
+                fontWeight="bold"
                 borderRadius="xl"
-                borderColor="accent.primary"
-                color="accent.primary"
-                bg="white"
-                _hover={{ bg: 'pastel.indigo' }}
+                borderColor="white"
+                color="white"
+                _hover={{ bg: 'whiteAlpha.200', transform: 'translateY(-2px)', boxShadow: 'lg' }}
+                transition="all 0.3s"
                 onClick={() => window.open('https://apps.apple.com/app/komon-mobile/id123456789', '_blank')}
               >
-                Télécharger sur iOS
+                Télécharger sur iOS!
               </Button>
             </HStack>
           </VStack>
 
-          {/* Features Preview */}
-          <VStack spacing="8" w="full">
+          {/* Features */}
+          <VStack spacing="8" maxW="4xl">
             <Text
               fontSize="lg"
-              color="gray.600"
-              fontWeight="medium"
+              color="orange.100"
+              fontWeight="semibold"
             >
-              Disponible sur toutes les plateformes
+              Pourquoi choisir KomOn!?
             </Text>
 
             <HStack
               spacing="8"
-              justify="center"
               flexWrap="wrap"
+              justify="center"
             >
-              <Box
-                bg="white"
-                p="6"
-                borderRadius="2xl"
-                boxShadow="lg"
-                textAlign="center"
-                minW="200px"
-                transition="all 0.3s"
-                _hover={{
-                  transform: 'translateY(-4px)',
-                  boxShadow: 'xl',
-                }}
-              >
-                <VStack spacing="4">
-                  <Box
-                    w="12"
-                    h="12"
-                    bg="pastel.blue"
-                    borderRadius="xl"
-                    display="flex"
-                    alignItems="center"
-                    justifyContent="center"
-                  >
-                    <Smartphone color="accent.primary" size={24} />
-                  </Box>
-                  <VStack spacing="2">
-                    <Text
-                      fontSize="lg"
-                      fontWeight="semibold"
-                      color="gray.800"
-                    >
-                      Application Mobile
-                    </Text>
-                    <Text
-                      fontSize="sm"
-                      color="gray.600"
-                    >
-                      iOS et Android
-                    </Text>
-                  </VStack>
-                </VStack>
-              </Box>
+              <VStack spacing="3" minW="200px">
+                <Box
+                  w="16"
+                  h="16"
+                  bg="whiteAlpha.200"
+                  borderRadius="full"
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="center"
+                  backdropFilter="blur(10px)"
+                >
+                  <Smartphone size={32} color="white" />
+                </Box>
+                <Text color="white" fontWeight="bold" fontSize="lg">
+                  Application mobile!
+                </Text>
+                <Text color="orange.100" fontSize="sm" textAlign="center">
+                  Accès facile depuis ton téléphone!
+                </Text>
+              </VStack>
 
+              <VStack spacing="3" minW="200px">
+                <Box
+                  w="16"
+                  h="16"
+                  bg="whiteAlpha.200"
+                  borderRadius="full"
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="center"
+                  backdropFilter="blur(10px)"
+                >
+                  <ArrowRight size={32} color="white" />
+                </Box>
+                <Text color="white" fontWeight="bold" fontSize="lg">
+                  Événements locaux!
+                </Text>
+                <Text color="orange.100" fontSize="sm" textAlign="center">
+                  Découvre les événements près de chez toi!
+                </Text>
+              </VStack>
 
+              <VStack spacing="3" minW="200px">
+                <Box
+                  w="16"
+                  h="16"
+                  bg="whiteAlpha.200"
+                  borderRadius="full"
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="center"
+                  backdropFilter="blur(10px)"
+                >
+                  <Download size={32} color="white" />
+                </Box>
+                <Text color="white" fontWeight="bold" fontSize="lg">
+                  Communauté active!
+                </Text>
+                <Text color="orange.100" fontSize="sm" textAlign="center">
+                  Rejoins des sportifs motivés!
+                </Text>
+              </VStack>
             </HStack>
           </VStack>
 
           {/* Final CTA */}
-          <Box
-            bg="white"
-            p="8"
-            borderRadius="2xl"
-            boxShadow="lg"
-            textAlign="center"
-            maxW="2xl"
-            w="full"
-          >
-            <VStack spacing="6">
-              <Heading
-                as="h3"
-                size="lg"
-                fontWeight="semibold"
-                color="gray.800"
-              >
-                Téléchargez l'app gratuitement
-              </Heading>
-
-              <Text
-                color="gray.600"
-                fontSize="lg"
-                lineHeight="1.6"
-              >
-                Rejoignez des milliers de sportifs qui utilisent déjà KomOn Mobile 
-                pour découvrir et participer aux événements de leur région.
-              </Text>
-
-              <Button
-                size="lg"
-                bg="accent.primary"
-                color="white"
-                _hover={{ bg: 'accent.secondary' }}
-                px="8"
-                py="6"
-                fontSize="lg"
-                fontWeight="semibold"
-                borderRadius="xl"
-                boxShadow="lg"
-                _active={{ transform: 'scale(0.95)' }}
-                onClick={() => window.open('https://play.google.com/store/apps/details?id=com.komon.mobile', '_blank')}
-              >
-                Télécharger maintenant
-              </Button>
-            </VStack>
-          </Box>
+          <VStack spacing="6">
+            <Text
+              fontSize="2xl"
+              color="white"
+              fontWeight="bold"
+            >
+              Alors, prêt à bouger? KomOn!
+            </Text>
+            
+            <Button
+              size="lg"
+              bg="white"
+              color="orange.500"
+              _hover={{ bg: 'orange.50', transform: 'translateY(-2px)', boxShadow: 'xl' }}
+              _active={{ bg: 'orange.100' }}
+              px="10"
+              py="6"
+              fontSize="xl"
+              fontWeight="bold"
+              borderRadius="xl"
+              boxShadow="xl"
+              transition="all 0.3s"
+              onClick={() => window.open('https://play.google.com/store/apps/details?id=com.komon.mobile', '_blank')}
+            >
+              Rejoins-nous maintenant!
+            </Button>
+          </VStack>
         </VStack>
       </Container>
     </Box>

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { Providers } from './providers'
-import MarketingHeader from '@/components/MarketingHeader'
+import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import { Box } from '@chakra-ui/react'
 import { ReactNode } from 'react'
@@ -9,21 +9,21 @@ import { ReactNode } from 'react'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'KomOn - Plateforme d\'Événements Sportifs Locaux',
-  description: 'Découvrez et participez à des événements sportifs locaux. Connectez-vous avec des passionnés de sport dans votre région.',
-  keywords: 'sport, événements, local, communauté, fitness, activités',
-  authors: [{ name: 'KomOn Team' }],
+  title: 'KomOn! - Come On, Let\'s Move Together!',
+  description: 'Rejoins la communauté énergique de sportifs et d\'événements qui te poussent à bouger! Découvre et participe aux événements sportifs de ta région!',
+  keywords: 'sport, événements, local, communauté, fitness, activités, motivation, bouger, KomOn',
+  authors: [{ name: 'KomOn! Team' }],
   openGraph: {
-    title: 'KomOn - Plateforme d\'Événements Sportifs Locaux',
-    description: 'Découvrez et participez à des événements sportifs locaux',
+    title: 'KomOn! - Come On, Let\'s Move Together!',
+    description: 'Rejoins la communauté énergique de sportifs et d\'événements qui te poussent à bouger!',
     url: 'https://komon.fr',
-    siteName: 'KomOn',
+    siteName: 'KomOn!',
     images: [
       {
         url: '/og-image.jpg',
         width: 1200,
         height: 630,
-        alt: 'KomOn - Événements Sportifs Locaux',
+        alt: 'KomOn! - Come On, Let\'s Move Together!',
       },
     ],
     locale: 'fr_FR',
@@ -31,8 +31,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'KomOn - Plateforme d\'Événements Sportifs Locaux',
-    description: 'Découvrez et participez à des événements sportifs locaux',
+    title: 'KomOn! - Come On, Let\'s Move Together!',
+    description: 'Rejoins la communauté énergique de sportifs et d\'événements qui te poussent à bouger!',
     images: ['/og-image.jpg'],
   },
   robots: {
@@ -60,7 +60,7 @@ export default function RootLayout({
     <html lang="fr">
       <body className={inter.className}>
         <Providers>
-          <MarketingHeader />
+          <Header />
           <Box as="main" pt="70px" minH="100vh" bg="gray.50">
             {children}
           </Box>

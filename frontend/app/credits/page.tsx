@@ -372,12 +372,12 @@ export default function CreditsPage() {
           <VStack spacing={4} textAlign="center">
             <Button
               as={Link}
-              href="/signup"
+              href="#download"
               variant="ghost"
               size="lg"
               leftIcon={<FaArrowLeft />}
             >
-              Retour aux plans
+              Télécharger l'app
             </Button>
             <Text color="gray.500" fontSize="sm">
               Considérez aussi nos plans Premium et Illimité pour des économies à long terme !

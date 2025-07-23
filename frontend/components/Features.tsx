@@ -25,59 +25,59 @@ import {
 const features = [
   {
     icon: Search,
-    title: 'Découverte Facile',
-    description: 'Trouvez rapidement des événements sportifs près de chez vous avec notre système de recherche intelligent.',
-    color: 'pastel.blue',
-    iconColor: 'accent.info',
+    title: 'Découverte Facile!',
+    description: 'Trouve rapidement des événements sportifs près de chez toi avec notre système de recherche intelligent!',
+    color: 'orange.100',
+    iconColor: 'orange.500',
   },
   {
     icon: Calendar,
-    title: 'Inscription Simple',
-    description: 'Inscrivez-vous en quelques clics à vos événements préférés avec un processus simplifié.',
-    color: 'pastel.green',
-    iconColor: 'accent.success',
+    title: 'Participation Simple!',
+    description: 'Rejoins tes événements préférés en quelques clics avec un processus simplifié!',
+    color: 'blue.100',
+    iconColor: 'blue.500',
   },
   {
     icon: Users,
-    title: 'Communauté Active',
-    description: 'Rejoignez une communauté de passionnés de sport et partagez vos expériences.',
-    color: 'pastel.purple',
-    iconColor: 'accent.secondary',
+    title: 'Communauté Active!',
+    description: 'Rejoins une communauté de passionnés de sport et partage tes expériences!',
+    color: 'green.100',
+    iconColor: 'green.500',
   },
   {
     icon: MessageCircle,
-    title: 'Communication Intégrée',
-    description: 'Échangez avec les organisateurs et autres participants via notre messagerie intégrée.',
-    color: 'pastel.pink',
-    iconColor: 'accent.error',
+    title: 'Communication Intégrée!',
+    description: 'Échange avec les organisateurs et autres participants via notre messagerie intégrée!',
+    color: 'purple.100',
+    iconColor: 'purple.500',
   },
   {
     icon: MapPin,
-    title: 'Géolocalisation',
-    description: 'Localisez facilement les lieux d\'événements avec des cartes interactives et des itinéraires.',
-    color: 'pastel.orange',
-    iconColor: 'accent.warning',
+    title: 'Géolocalisation!',
+    description: 'Localise facilement les lieux d\'événements avec des cartes interactives et des itinéraires!',
+    color: 'red.100',
+    iconColor: 'red.500',
   },
   {
     icon: CreditCard,
-    title: 'Paiement Sécurisé',
-    description: 'Effectuez vos paiements en toute sécurité avec Stripe pour les événements payants.',
-    color: 'pastel.teal',
-    iconColor: 'accent.primary',
+    title: 'Paiement Sécurisé!',
+    description: 'Effectue tes paiements en toute sécurité avec Stripe pour les événements payants!',
+    color: 'teal.100',
+    iconColor: 'teal.500',
   },
   {
     icon: Bell,
-    title: 'Notifications',
-    description: 'Restez informé des mises à jour et rappels d\'événements avec nos notifications personnalisées.',
-    color: 'pastel.yellow',
-    iconColor: 'accent.warning',
+    title: 'Notifications!',
+    description: 'Reste informé des mises à jour et rappels d\'événements avec nos notifications personnalisées!',
+    color: 'yellow.100',
+    iconColor: 'yellow.500',
   },
   {
     icon: Trophy,
-    title: 'Suivi des Performances',
-    description: 'Suivez vos participations et performances avec des statistiques détaillées.',
-    color: 'pastel.indigo',
-    iconColor: 'accent.secondary',
+    title: 'Suivi des Performances!',
+    description: 'Suis tes participations et performances avec des statistiques détaillées!',
+    color: 'indigo.100',
+    iconColor: 'indigo.500',
   },
 ]
 
@@ -91,16 +91,18 @@ export function Features() {
           {/* Header */}
           <VStack spacing="6" maxW="3xl">
             <Box
-              bg="white"
-              color="accent.primary"
+              bg="orange.500"
+              color="white"
               px="4"
               py="2"
               borderRadius="full"
               fontSize="sm"
-              fontWeight="semibold"
-              boxShadow="md"
+              fontWeight="bold"
+              boxShadow="lg"
+              border="2px solid"
+              borderColor="orange.300"
             >
-              ✨ Fonctionnalités
+              🚀 Fonctionnalités KomOn!
             </Box>
 
             <Heading
@@ -109,32 +111,29 @@ export function Features() {
               fontWeight="bold"
               color="gray.800"
             >
-              Tout ce dont vous avez besoin pour{' '}
+              Tout ce dont tu as besoin pour{' '}
               <Text
                 as="span"
-                bgGradient="linear(to-r, accent.primary, accent.secondary)"
+                bgGradient="linear(to-r, orange.500, blue.600)"
                 bgClip="text"
               >
-                organiser et participer
+                bouger et te connecter!
               </Text>
             </Heading>
 
             <Text
               fontSize="xl"
               color="gray.600"
+              maxW="2xl"
               lineHeight="1.6"
             >
-              Une plateforme complète qui simplifie la découverte, l'organisation 
-              et la participation aux événements sportifs locaux.
+              KomOn! te donne tous les outils pour découvrir, participer et organiser 
+              des événements sportifs incroyables dans ta région!
             </Text>
           </VStack>
 
           {/* Features Grid */}
-          <SimpleGrid
-            columns={{ base: 1, md: 2, lg: 4 }}
-            spacing="8"
-            w="full"
-          >
+          <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing="8" w="full">
             {features.map((feature, index) => (
               <Box
                 key={index}
@@ -142,29 +141,16 @@ export function Features() {
                 p="8"
                 borderRadius="2xl"
                 boxShadow="lg"
-                border="1px solid"
-                borderColor="gray.100"
                 textAlign="center"
                 transition="all 0.3s"
                 _hover={{
-                  transform: 'translateY(-4px)',
+                  transform: 'translateY(-8px)',
                   boxShadow: 'xl',
-                  borderColor: feature.iconColor,
                 }}
-                position="relative"
-                overflow="hidden"
+                border="1px solid"
+                borderColor="gray.100"
               >
-                {/* Background Accent */}
-                <Box
-                  position="absolute"
-                  top="0"
-                  left="0"
-                  right="0"
-                  h="4px"
-                  bg={feature.color}
-                />
-
-                <VStack spacing="6" align="center">
+                <VStack spacing="6">
                   <Box
                     w="16"
                     h="16"
@@ -173,29 +159,23 @@ export function Features() {
                     display="flex"
                     alignItems="center"
                     justifyContent="center"
-                    boxShadow="md"
+                    boxShadow="lg"
                   >
-                    <Icon
-                      as={feature.icon}
-                      color={feature.iconColor}
-                      size={32}
-                    />
+                    <Icon as={feature.icon} color={feature.iconColor} boxSize="8" />
                   </Box>
-
-                  <VStack spacing="3" align="center">
-                    <Heading
-                      as="h3"
-                      size="lg"
-                      fontWeight="semibold"
+                  
+                  <VStack spacing="3">
+                    <Text
+                      fontSize="lg"
+                      fontWeight="bold"
                       color="gray.800"
                     >
                       {feature.title}
-                    </Heading>
-
+                    </Text>
                     <Text
+                      fontSize="sm"
                       color="gray.600"
                       lineHeight="1.6"
-                      fontSize="md"
                     >
                       {feature.description}
                     </Text>
@@ -205,75 +185,43 @@ export function Features() {
             ))}
           </SimpleGrid>
 
-          {/* CTA Section */}
-          <Box
-            bg="white"
-            p="8"
-            borderRadius="2xl"
-            boxShadow="lg"
-            border="1px solid"
-            borderColor="gray.100"
-            textAlign="center"
-            maxW="2xl"
-            w="full"
-          >
-            <VStack spacing="6">
-              <Heading
-                as="h3"
-                size="lg"
-                fontWeight="semibold"
-                color="gray.800"
-              >
-                Prêt à rejoindre la communauté ?
-              </Heading>
-
-              <Text
-                color="gray.600"
-                fontSize="lg"
-                lineHeight="1.6"
-              >
-                Créez votre compte gratuitement et commencez à découvrir 
-                les événements sportifs de votre région dès aujourd'hui.
-              </Text>
-
-              <HStack spacing="4" justify="center">
-                <Box
-                  bg="accent.primary"
+          {/* Call to Action */}
+          <VStack spacing="6" pt="8">
+            <Text
+              fontSize="xl"
+              color="gray.700"
+              fontWeight="semibold"
+            >
+              Prêt à rejoindre la communauté KomOn!?
+            </Text>
+            
+            <Box
+              bgGradient="linear(to-r, orange.500, blue.600)"
+              p="8"
+              borderRadius="2xl"
+              boxShadow="xl"
+              textAlign="center"
+              maxW="2xl"
+              w="full"
+            >
+              <VStack spacing="4">
+                <Text
+                  fontSize="2xl"
                   color="white"
-                  px="6"
-                  py="3"
-                  borderRadius="xl"
-                  fontWeight="semibold"
-                  cursor="pointer"
-                  transition="all 0.3s"
-                  _hover={{
-                    bg: 'accent.secondary',
-                    transform: 'scale(1.05)',
-                  }}
+                  fontWeight="bold"
                 >
-                  Créer un compte
-                </Box>
-
-                <Box
-                  border="2px solid"
-                  borderColor="accent.primary"
-                  color="accent.primary"
-                  px="6"
-                  py="3"
-                  borderRadius="xl"
-                  fontWeight="semibold"
-                  cursor="pointer"
-                  transition="all 0.3s"
-                  _hover={{
-                    bg: 'pastel.indigo',
-                    transform: 'scale(1.05)',
-                  }}
+                  Rejoins-nous maintenant!
+                </Text>
+                <Text
+                  color="orange.100"
+                  fontSize="lg"
+                  lineHeight="1.6"
                 >
-                  En savoir plus
-                </Box>
-              </HStack>
-            </VStack>
-          </Box>
+                  Télécharge l'application mobile et commence à bouger avec KomOn!
+                </Text>
+              </VStack>
+            </Box>
+          </VStack>
         </VStack>
       </Container>
     </Box>

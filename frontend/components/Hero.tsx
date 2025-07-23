@@ -17,8 +17,8 @@ import { ArrowRight, Play, Users, Calendar, MapPin } from 'lucide-react'
 
 export function Hero() {
   const bgGradient = useColorModeValue(
-    'linear(to-br, pastel.blue, pastel.indigo)',
-    'linear(to-br, gray.900, gray.800)'
+    'linear(to-br, orange.400, blue.600)',
+    'linear(to-br, orange.500, blue.700)'
   )
 
   return (
@@ -30,7 +30,7 @@ export function Hero() {
       position="relative"
       overflow="hidden"
     >
-      {/* Background Pattern */}
+      {/* Background Pattern - Triangles dynamiques */}
       <Box
         position="absolute"
         top="0"
@@ -38,7 +38,7 @@ export function Hero() {
         right="0"
         bottom="0"
         opacity="0.1"
-        backgroundImage="url('data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='4'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')"
+        backgroundImage="url('data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Cpolygon points='30,5 55,45 5,45'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')"
       />
 
       <Container maxW="container.xl" position="relative" zIndex="1">
@@ -58,15 +58,17 @@ export function Hero() {
             <VStack spacing="6" align={{ base: 'center', lg: 'flex-start' }}>
               <Box
                 bg="white"
-                color="accent.primary"
+                color="orange.500"
                 px="4"
                 py="2"
                 borderRadius="full"
                 fontSize="sm"
-                fontWeight="semibold"
-                boxShadow="md"
+                fontWeight="bold"
+                boxShadow="lg"
+                border="2px solid"
+                borderColor="orange.300"
               >
-                📱 Application mobile disponible
+                🚀 Prêt à bouger? KomOn!
               </Box>
 
               <Heading
@@ -74,236 +76,180 @@ export function Hero() {
                 size="2xl"
                 fontWeight="bold"
                 lineHeight="1.2"
-                color="gray.800"
+                color="white"
               >
-                Téléchargez l'app{' '}
+                Come On,{' '}
                 <Text
                   as="span"
-                  bgGradient="linear(to-r, accent.primary, accent.secondary)"
+                  bgGradient="linear(to-r, white, orange.200)"
                   bgClip="text"
+                  fontSize="3xl"
+                  fontWeight="extrabold"
                 >
-                  KomOn Mobile
-                </Text>{' '}
-                et rejoignez la communauté
+                  Let's Move Together!
+                </Text>
               </Heading>
 
               <Text
                 fontSize="xl"
-                color="gray.600"
+                color="white"
                 maxW="500px"
                 lineHeight="1.6"
+                fontWeight="medium"
               >
-                L'application mobile vous permet de découvrir et participer aux événements sportifs 
-                de votre région, directement depuis votre téléphone.
+                Rejoins la communauté énergique de sportifs et d'événements qui te poussent à bouger! 
+                Découvre et participe aux événements sportifs de ta région!
               </Text>
             </VStack>
 
             <HStack spacing="4" flexWrap="wrap" justify={{ base: 'center', lg: 'flex-start' }}>
               <Button
                 size="lg"
-                colorScheme="purple"
-                bg="accent.primary"
-                _hover={{ bg: 'accent.secondary' }}
-                rightIcon={<ArrowRight size={20} />}
+                colorScheme="orange"
+                bg="orange.500"
+                _hover={{ bg: 'orange.600', transform: 'translateY(-2px)' }}
+                _active={{ bg: 'orange.700' }}
                 px="8"
-                py="6"
+                py="4"
                 fontSize="lg"
-                fontWeight="semibold"
+                fontWeight="bold"
                 borderRadius="xl"
-                boxShadow="lg"
-                _active={{ transform: 'scale(0.95)' }}
-                onClick={() => window.open('https://play.google.com/store/apps/details?id=com.komon.mobile', '_blank')}
+                boxShadow="xl"
+                transition="all 0.3s"
+                rightIcon={<ArrowRight />}
               >
-                Télécharger sur Android
+                Rejoins-nous!
               </Button>
-
+              
               <Button
                 size="lg"
                 variant="outline"
-                leftIcon={<Play size={20} />}
+                color="white"
+                borderColor="white"
+                _hover={{ bg: 'whiteAlpha.200', transform: 'translateY(-2px)' }}
                 px="8"
-                py="6"
+                py="4"
                 fontSize="lg"
-                fontWeight="semibold"
+                fontWeight="bold"
                 borderRadius="xl"
-                borderColor="accent.primary"
-                color="accent.primary"
-                _hover={{ bg: 'pastel.indigo' }}
-                onClick={() => window.open('https://apps.apple.com/app/komon-mobile/id123456789', '_blank')}
+                transition="all 0.3s"
+                leftIcon={<Play />}
               >
-                Télécharger sur iOS
+                Voir la démo!
               </Button>
             </HStack>
 
             {/* Stats */}
-            <HStack
-              spacing="8"
-              pt="8"
-              borderTop="1px solid"
-              borderColor="gray.200"
-              w="full"
-              justify={{ base: 'center', lg: 'flex-start' }}
-            >
-              <VStack spacing="1">
+            <HStack spacing="8" pt="8" flexWrap="wrap" justify={{ base: 'center', lg: 'flex-start' }}>
+              <VStack spacing="2">
                 <HStack>
-                  <Icon as={Users} color="accent.success" />
-                  <Text fontSize="2xl" fontWeight="bold" color="gray.800">
-                    10K+
+                  <Icon as={Users} color="orange.200" boxSize="6" />
+                  <Text color="white" fontSize="2xl" fontWeight="bold">
+                    1,000+
                   </Text>
                 </HStack>
-                <Text fontSize="sm" color="gray.600">
-                  Sportifs actifs
+                <Text color="orange.100" fontSize="sm" fontWeight="medium">
+                  Sportifs actifs!
                 </Text>
               </VStack>
 
-              <VStack spacing="1">
+              <VStack spacing="2">
                 <HStack>
-                  <Icon as={Calendar} color="accent.warning" />
-                  <Text fontSize="2xl" fontWeight="bold" color="gray.800">
+                  <Icon as={Calendar} color="orange.200" boxSize="6" />
+                  <Text color="white" fontSize="2xl" fontWeight="bold">
                     500+
                   </Text>
                 </HStack>
-                <Text fontSize="sm" color="gray.600">
-                  Événements
+                <Text color="orange.100" fontSize="sm" fontWeight="medium">
+                  Événements créés!
                 </Text>
               </VStack>
 
-              <VStack spacing="1">
+              <VStack spacing="2">
                 <HStack>
-                  <Icon as={MapPin} color="accent.error" />
-                  <Text fontSize="2xl" fontWeight="bold" color="gray.800">
+                  <Icon as={MapPin} color="orange.200" boxSize="6" />
+                  <Text color="white" fontSize="2xl" fontWeight="bold">
                     50+
                   </Text>
                 </HStack>
-                <Text fontSize="sm" color="gray.600">
-                  Villes
+                <Text color="orange.100" fontSize="sm" fontWeight="medium">
+                  Villes couvertes!
                 </Text>
               </VStack>
             </HStack>
           </VStack>
 
-          {/* Hero Image */}
+          {/* Mobile App Preview */}
           <Box
             position="relative"
-            w={{ base: 'full', lg: '500px' }}
-            h={{ base: '400px', lg: '600px' }}
+            display={{ base: 'none', lg: 'block' }}
+            animation="float 6s ease-in-out infinite"
           >
             <Box
-              position="absolute"
-              top="0"
-              left="0"
-              right="0"
-              bottom="0"
+              position="relative"
+              w="300px"
+              h="600px"
               bg="white"
               borderRadius="3xl"
               boxShadow="2xl"
-              overflow="hidden"
-              transform="rotate(3deg)"
-            >
-              <Image
-                src="/hero-image.jpg"
-                alt="Application mobile KomOn"
-                w="full"
-                h="full"
-                objectFit="cover"
-                fallback={
-                  <Box
-                    w="full"
-                    h="full"
-                    bgGradient="linear(to-br, pastel.green, pastel.teal)"
-                    display="flex"
-                    alignItems="center"
-                    justifyContent="center"
-                  >
-                    <VStack spacing="4" color="gray.600">
-                      <Box
-                        w="20"
-                        h="20"
-                        bg="accent.primary"
-                        borderRadius="full"
-                        display="flex"
-                        alignItems="center"
-                        justifyContent="center"
-                      >
-                        <Icon as={Users} color="white" size={32} />
-                      </Box>
-                      <Text fontSize="lg" fontWeight="semibold">
-                        KomOn Mobile
-                      </Text>
-                      <Text fontSize="sm" textAlign="center">
-                        Application mobile
-                      </Text>
-                    </VStack>
-                  </Box>
-                }
-              />
-            </Box>
-
-            {/* Floating Cards */}
-            <Box
-              position="absolute"
-              top="10%"
-              right="-20px"
-              bg="white"
               p="4"
-              borderRadius="xl"
-              boxShadow="lg"
-              transform="rotate(-5deg)"
+              border="8px solid"
+              borderColor="gray.800"
             >
-              <VStack spacing="2" align="center">
-                <Box
-                  w="8"
-                  h="8"
-                  bg="accent.success"
-                  borderRadius="full"
-                  display="flex"
-                  alignItems="center"
-                  justifyContent="center"
-                >
-                  <Icon as={Calendar} color="white" size={16} />
+              {/* App Screen Content */}
+              <Box
+                bg="orange.500"
+                h="60px"
+                borderRadius="xl"
+                mb="4"
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
+              >
+                <Text color="white" fontSize="xl" fontWeight="bold">
+                  KomOn!
+                </Text>
+              </Box>
+              
+              <VStack spacing="3" align="stretch">
+                <Box bg="gray.100" h="80px" borderRadius="lg" p="3">
+                  <Text fontSize="sm" fontWeight="bold" color="gray.800">
+                    🏃‍♂️ Course du dimanche!
+                  </Text>
+                  <Text fontSize="xs" color="gray.600">
+                    Rejoins-nous pour 10km!
+                  </Text>
                 </Box>
-                <Text fontSize="sm" fontWeight="semibold" color="gray.700">
-                  Match de foot
-                </Text>
-                <Text fontSize="xs" color="gray.500">
-                  Dimanche 14h
-                </Text>
-              </VStack>
-            </Box>
-
-            <Box
-              position="absolute"
-              bottom="20%"
-              left="-20px"
-              bg="white"
-              p="4"
-              borderRadius="xl"
-              boxShadow="lg"
-              transform="rotate(5deg)"
-            >
-              <VStack spacing="2" align="center">
-                <Box
-                  w="8"
-                  h="8"
-                  bg="accent.warning"
-                  borderRadius="full"
-                  display="flex"
-                  alignItems="center"
-                  justifyContent="center"
-                >
-                  <Icon as={MapPin} color="white" size={16} />
+                
+                <Box bg="gray.100" h="80px" borderRadius="lg" p="3">
+                  <Text fontSize="sm" fontWeight="bold" color="gray.800">
+                    ⚽ Match de foot!
+                  </Text>
+                  <Text fontSize="xs" color="gray.600">
+                    Équipe locale vs visiteurs!
+                  </Text>
                 </Box>
-                <Text fontSize="sm" fontWeight="semibold" color="gray.700">
-                  Tennis Club
-                </Text>
-                <Text fontSize="xs" color="gray.500">
-                  Centre-ville
-                </Text>
+                
+                <Box bg="gray.100" h="80px" borderRadius="lg" p="3">
+                  <Text fontSize="sm" fontWeight="bold" color="gray.800">
+                    🏋️‍♂️ Gym en groupe!
+                  </Text>
+                  <Text fontSize="xs" color="gray.600">
+                    Séance intensive!
+                  </Text>
+                </Box>
               </VStack>
             </Box>
           </Box>
         </Stack>
       </Container>
+
+      <style jsx>{`
+        @keyframes float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-20px); }
+        }
+      `}</style>
     </Box>
   )
 } 

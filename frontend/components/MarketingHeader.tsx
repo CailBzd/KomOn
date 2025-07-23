@@ -1,141 +1,108 @@
-'use client'
-
+"use client"
 import {
-  Box,
-  Flex,
-  Text,
-  Button,
-  HStack,
-  Container,
-  IconButton,
-  Drawer,
-  DrawerOverlay,
-  DrawerContent,
-  DrawerCloseButton,
-  DrawerBody,
-  VStack,
-  useDisclosure,
+  Box, Flex, Text, HStack, Link, Container, IconButton, Drawer, DrawerOverlay, DrawerContent, DrawerCloseButton, DrawerBody, VStack, useDisclosure
 } from '@chakra-ui/react'
 import { HamburgerIcon } from '@chakra-ui/icons'
-import { ArrowRight } from 'lucide-react'
+import { useState, useEffect } from 'react'
 
 const NAV_ITEMS = [
   { label: 'Accueil', href: '/' },
-  { label: 'Fonctionnalités', href: '#features' },
-  { label: 'Télécharger', href: '#download' },
-  { label: 'À propos', href: '#about' },
-  { label: 'Contact', href: '#contact' }
+  { label: 'Fonctionnalités!', href: '#features' },
+  { label: 'Événements!', href: '#events' },
+  { label: 'Télécharger!', href: '#download' },
+  { label: 'À propos!', href: '#about' },
+  { label: 'Contact!', href: '#contact' }
 ]
 
 export default function MarketingHeader() {
   const { isOpen, onOpen, onClose } = useDisclosure()
+  const [isScrolled, setIsScrolled] = useState(false)
+
+  useEffect(() => {
+    const handleScroll = () => setIsScrolled(window.scrollY > 10)
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   return (
-    <Box
-      as="header"
-      position="fixed"
-      top="0"
-      left="0"
-      right="0"
-      zIndex="1000"
-      bg="white"
-      borderBottom="1px solid"
-      borderColor="gray.200"
-      backdropFilter="blur(10px)"
-      bg="rgba(255, 255, 255, 0.95)"
-    >
-      <Container maxW="container.xl">
-        <Flex h="16" alignItems="center" justify="space-between">
+    <Box as="header" position="fixed" top={0} left={0} right={0} zIndex={100} bg="white"
+      boxShadow={isScrolled ? '0 2px 16px rgba(0,0,0,0.06)' : '0 1px 0 #e2e8f0'} transition="box-shadow 0.2s">
+      <Container maxW="container.xl" py={2}>
+        <Flex align="center" justify="space-between">
           {/* Logo */}
-          <Flex alignItems="center">
-            <Text
-              fontSize="2xl"
-              fontWeight="bold"
-              bgGradient="linear(to-r, accent.primary, accent.secondary)"
-              bgClip="text"
-            >
-              KomOn
-            </Text>
-          </Flex>
-
-          {/* Desktop Navigation */}
-          <HStack spacing="8" display={{ base: 'none', md: 'flex' }}>
+          <Link href="/" _hover={{ textDecoration: 'none' }}>
+            <Flex align="center" gap={2}>
+              <Box w="10" h="10" bgGradient="linear(to-br, orange.500, orange.400)" borderRadius="xl" display="flex" alignItems="center" justifyContent="center" boxShadow="lg">
+                <Text fontWeight="bold" color="white" fontSize="2xl">K</Text>
+              </Box>
+              <VStack spacing={0} align="flex-start">
+                <Text fontWeight="bold" fontSize="2xl" bgGradient="linear(to-br, orange.500, blue.600)" bgClip="text">KomOn</Text>
+                <Text fontWeight="bold" fontSize="lg" color="orange.500" lineHeight={0.8}>!</Text>
+              </VStack>
+            </Flex>
+          </Link>
+          {/* Navigation desktop */}
+          <HStack as="nav" spacing={6} display={{ base: 'none', md: 'flex' }}>
             {NAV_ITEMS.map((item) => (
-              <Text
-                key={item.label}
-                as="a"
-                href={item.href}
-                fontSize="sm"
-                fontWeight="medium"
-                color="gray.600"
-                _hover={{ color: 'accent.primary' }}
-                transition="color 0.2s"
-              >
+              <Link key={item.label} href={item.href} fontWeight="600" color="gray.700" fontSize="md" px={3} py={2}
+                borderRadius="lg" _hover={{ bg: 'orange.50', color: 'orange.500', transform: 'translateY(-1px)', boxShadow: 'md' }} transition="all 0.2s">
                 {item.label}
-              </Text>
+              </Link>
             ))}
           </HStack>
-
           {/* CTA Button */}
-          <HStack spacing="4" display={{ base: 'none', md: 'flex' }}>
-            <Button
-              size="sm"
-              colorScheme="purple"
-              bg="accent.primary"
-              _hover={{ bg: 'accent.secondary' }}
-              rightIcon={<ArrowRight size={16} />}
-              onClick={() => window.open('https://play.google.com/store/apps/details?id=com.komon.mobile', '_blank')}
-            >
-              Télécharger
-            </Button>
+          <HStack spacing={3} display={{ base: 'none', md: 'flex' }}>
+            <Link href="#download" _hover={{ textDecoration: 'none' }}>
+              <Box
+                bgGradient="linear(to-r, orange.500, orange.400)"
+                _hover={{ bgGradient: 'linear(to-r, orange.600, orange.500)', transform: 'translateY(-1px)', boxShadow: 'lg' }}
+                px={6}
+                py={2}
+                borderRadius="full"
+                fontWeight="bold"
+                color="white"
+                transition="all 0.2s"
+                cursor="pointer"
+              >
+                Télécharger!
+              </Box>
+            </Link>
           </HStack>
-
-          {/* Mobile menu button */}
-          <IconButton
-            display={{ base: 'flex', md: 'none' }}
-            onClick={onOpen}
-            icon={<HamburgerIcon />}
-            variant="ghost"
-            aria-label="Open menu"
-          />
+          {/* Menu mobile */}
+          <IconButton aria-label="Ouvrir le menu" icon={<HamburgerIcon boxSize={6} />} display={{ base: 'flex', md: 'none' }}
+            variant="ghost" onClick={onOpen} colorScheme="orange" />
         </Flex>
       </Container>
-
-      {/* Mobile Navigation Drawer */}
+      {/* Drawer mobile */}
       <Drawer isOpen={isOpen} placement="right" onClose={onClose}>
         <DrawerOverlay />
         <DrawerContent>
           <DrawerCloseButton />
-          <DrawerBody pt="16">
-            <VStack spacing="4" align="stretch">
+          <DrawerBody>
+            <VStack spacing={6} mt={10} align="stretch">
               {NAV_ITEMS.map((item) => (
-                <Text
-                  key={item.label}
-                  as="a"
-                  href={item.href}
-                  fontSize="lg"
-                  fontWeight="medium"
-                  color="gray.600"
-                  _hover={{ color: 'accent.primary' }}
-                  transition="color 0.2s"
-                  onClick={onClose}
-                >
+                <Link key={item.label} href={item.href} fontWeight="600" color="gray.700" fontSize="lg" px={3} py={3}
+                  borderRadius="lg" _hover={{ bg: 'orange.50', color: 'orange.500', textDecoration: 'none' }} transition="all 0.2s" onClick={onClose}>
                   {item.label}
-                </Text>
+                </Link>
               ))}
-              <Button
-                mt="4"
-                colorScheme="purple"
-                bg="accent.primary"
-                _hover={{ bg: 'accent.secondary' }}
-                rightIcon={<ArrowRight size={16} />}
-                onClick={() => {
-                  window.open('https://play.google.com/store/apps/details?id=com.komon.mobile', '_blank')
-                  onClose()
-                }}
-              >
-                Télécharger l'app
-              </Button>
+              <Link href="#download" _hover={{ textDecoration: 'none' }} onClick={onClose}>
+                <Box
+                  bgGradient="linear(to-r, orange.500, orange.400)"
+                  _hover={{ bgGradient: 'linear(to-r, orange.600, orange.500)' }}
+                  py={3}
+                  px={6}
+                  borderRadius="full"
+                  w="full"
+                  fontWeight="bold"
+                  color="white"
+                  textAlign="center"
+                  transition="all 0.2s"
+                  cursor="pointer"
+                >
+                  Télécharger!
+                </Box>
+              </Link>
             </VStack>
           </DrawerBody>
         </DrawerContent>
