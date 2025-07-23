@@ -12,10 +12,9 @@ export default function Footer() {
               <Box w="10" h="10" bgGradient="linear(to-br, orange.500, orange.400)" borderRadius="xl" display="flex" alignItems="center" justifyContent="center" boxShadow="lg">
                 <Text fontWeight="bold" color="white" fontSize="2xl">K</Text>
               </Box>
-              <VStack spacing={0} align="flex-start">
-                <Text fontWeight="bold" fontSize="2xl" bgGradient="linear(to-br, orange.500, blue.600)" bgClip="text">KomOn</Text>
-                <Text fontWeight="bold" fontSize="lg" color="orange.500" lineHeight={0.8}>!</Text>
-              </VStack>
+              <Text fontWeight="bold" fontSize="2xl" bgGradient="linear(to-br, orange.500, blue.600)" bgClip="text">
+                KomOn!
+              </Text>
             </Flex>
             <Text fontSize="sm" color="gray.400">Come On, Let's Move Together! Rejoins la communauté énergique de sportifs et d'événements qui te poussent à bouger!</Text>
           </VStack>
