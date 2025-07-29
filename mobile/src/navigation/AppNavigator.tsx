@@ -4,6 +4,8 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
+import KomOnIcon from '../components/KomOnIcons';
 
 // Écrans d'authentification
 import WelcomeScreen from '../screens/auth/WelcomeScreen';
@@ -26,15 +28,17 @@ const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
 function MainTabs() {
+  const { colors } = useTheme();
+  
   return (
     <Tab.Navigator
       screenOptions={{
-        tabBarActiveTintColor: '#319795',
-        tabBarInactiveTintColor: '#718096',
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.textSecondary,
         tabBarStyle: {
-          backgroundColor: '#ffffff',
+          backgroundColor: colors.surface,
           borderTopWidth: 1,
-          borderTopColor: '#e2e8f0',
+          borderTopColor: colors.border,
           paddingBottom: 5,
           paddingTop: 5,
           height: 60,
@@ -48,7 +52,7 @@ function MainTabs() {
         options={{
           tabBarLabel: 'Accueil',
           tabBarIcon: ({ color, size }) => (
-            <Text style={{ color, fontSize: size }}>🏠</Text>
+            <KomOnIcon name="home" size={size} style={{ color }} />
           ),
         }}
       />
@@ -58,7 +62,7 @@ function MainTabs() {
         options={{
           tabBarLabel: 'Événements',
           tabBarIcon: ({ color, size }) => (
-            <Text style={{ color, fontSize: size }}>🎯</Text>
+            <KomOnIcon name="calendar" size={size} style={{ color }} />
           ),
         }}
       />
@@ -68,7 +72,7 @@ function MainTabs() {
         options={{
           tabBarLabel: 'Crédits',
           tabBarIcon: ({ color, size }) => (
-            <Text style={{ color, fontSize: size }}>💎</Text>
+            <KomOnIcon name="gift" size={size} style={{ color }} />
           ),
         }}
       />
@@ -78,7 +82,7 @@ function MainTabs() {
         options={{
           tabBarLabel: 'Profil',
           tabBarIcon: ({ color, size }) => (
-            <Text style={{ color, fontSize: size }}>👤</Text>
+            <KomOnIcon name="user" size={size} style={{ color }} />
           ),
         }}
       />

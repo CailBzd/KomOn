@@ -163,7 +163,7 @@ export function Features() {
                   >
                     <Icon as={feature.icon} color={feature.iconColor} boxSize="8" />
                   </Box>
-                  
+
                   <VStack spacing="3">
                     <Text
                       fontSize="lg"
@@ -195,17 +195,17 @@ export function Features() {
               Prêt à rejoindre la communauté KomOn!?
             </Text>
             
-            <Box
+          <Box
               bgGradient="linear(to-r, orange.500, blue.600)"
-              p="8"
-              borderRadius="2xl"
+            p="8"
+            borderRadius="2xl"
               boxShadow="xl"
-              textAlign="center"
-              maxW="2xl"
-              w="full"
-            >
+            textAlign="center"
+            maxW="2xl"
+            w="full"
+          >
               <VStack spacing="4">
-                <Text
+              <Text
                   fontSize="2xl"
                   color="white"
                   fontWeight="bold"
@@ -219,8 +219,8 @@ export function Features() {
                 >
                   Télécharge l'application mobile et commence à bouger avec KomOn!
                 </Text>
-              </VStack>
-            </Box>
+            </VStack>
+          </Box>
           </VStack>
         </VStack>
       </Container>

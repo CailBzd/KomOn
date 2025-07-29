@@ -1,38 +1,39 @@
 {
   "expo": {
-    "name": "KomOn",
-    "slug": "komon-mobile",
+    "name": "KomOn!",
+    "slug": "komon",
     "version": "1.0.0",
     "orientation": "portrait",
-    "userInterfaceStyle": "light",
+    "icon": "./assets/images/icon.png",
+    "scheme": "myapp",
+    "userInterfaceStyle": "automatic",
     "splash": {
+      "image": "./assets/images/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#3b82f6"
+      "backgroundColor": "#ffffff"
     },
     "assetBundlePatterns": [
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.komon.mobile"
+      "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#3b82f6"
-      },
-      "package": "com.komon.mobile"
+        "foregroundImage": "./assets/images/icon.png",
+        "backgroundColor": "#ffffff"
+      }
     },
-    "web": {},
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/images/icon.png"
+    },
     "plugins": [
-      "expo-location",
-      "expo-notifications",
-      [
-        "expo-image-picker",
-        {
-          "photosPermission": "L'application accède à vos photos pour vous permettre de sélectionner une image de profil."
-        }
-      ],
-      "expo-secure-store"
-    ]
+      "expo-router"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
   }
 }

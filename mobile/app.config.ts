@@ -23,8 +23,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   android: {
     adaptiveIcon: {
-      foregroundImage: './assets/images/adaptive-icon.png',
-      backgroundColor: '#ffffff'
+      foregroundImage: './assets/images/icon.png',
+      backgroundColor: '#FF6B35'
     },
     package: 'com.komon.mobile'
   },

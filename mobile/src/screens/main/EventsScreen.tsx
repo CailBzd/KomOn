@@ -4,210 +4,304 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  SafeAreaView,
-  StatusBar,
   ScrollView,
+  Dimensions,
 } from 'react-native';
+import { useAuth } from '../../contexts/AuthContext';
+import { useTheme } from '../../contexts/ThemeContext';
+import SafeAreaWrapper from '../../components/SafeAreaWrapper';
+
+const { width } = Dimensions.get('window');
 
 export default function EventsScreen() {
+  const { user } = useAuth();
+  const { colors } = useTheme();
+
   return (
-    <>
-      <StatusBar barStyle="dark-content" backgroundColor="#f7fafc" />
-      <SafeAreaView style={styles.safeArea}>
-        <ScrollView 
-          contentContainerStyle={styles.scrollContainer}
-          showsVerticalScrollIndicator={false}
-        >
-          {/* Header */}
-          <View style={styles.header}>
-            <Text style={styles.headerTitle}>Événements</Text>
-            <TouchableOpacity style={styles.createButton}>
-              <Text style={styles.createButtonText}>+ Créer</Text>
+    <SafeAreaWrapper>
+      {/* Fixed Header */}
+      <View style={[styles.fixedHeader, { backgroundColor: colors.background, borderBottomColor: colors.border }]}>
+        <View style={styles.headerTop}>
+          <View style={styles.logoContainer}>
+            <View style={[styles.logoBox, { backgroundColor: colors.primary }]}>
+              <Text style={styles.logoText}>K</Text>
+            </View>
+            <Text style={[styles.logoText, { color: colors.primary }]}>KomOn!</Text>
+          </View>
+          <TouchableOpacity style={[styles.createButton, { backgroundColor: colors.primary }]}>
+            <Text style={styles.createButtonText}>+ Créer!</Text>
+          </TouchableOpacity>
+        </View>
+        
+        {/* User Info */}
+        <View style={styles.userInfo}>
+          <Text style={[styles.welcomeText, { color: colors.text }]}>Découvre des événements!</Text>
+          <Text style={[styles.subtitleText, { color: colors.textSecondary }]}>Trouve ton prochain défi sportif</Text>
+        </View>
+
+        {/* Filters */}
+        <View style={styles.filtersSection}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <TouchableOpacity style={[styles.filterChip, styles.filterChipActive, { backgroundColor: colors.primary, borderColor: colors.primary }]}>
+              <Text style={styles.filterChipTextActive}>Tous!</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.filterChip, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              <Text style={[styles.filterChipText, { color: colors.textSecondary }]}>Football!</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.filterChip, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              <Text style={[styles.filterChipText, { color: colors.textSecondary }]}>Basketball!</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.filterChip, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              <Text style={[styles.filterChipText, { color: colors.textSecondary }]}>Course!</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.filterChip, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              <Text style={[styles.filterChipText, { color: colors.textSecondary }]}>Tennis!</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.filterChip, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              <Text style={[styles.filterChipText, { color: colors.textSecondary }]}>Musculation!</Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </View>
+      </View>
+
+      {/* Scrollable Content */}
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContainer}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Events List */}
+        <View style={styles.eventsSection}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Événements disponibles!</Text>
+          
+          <View style={[styles.eventCard, { backgroundColor: colors.surface }]}>
+            <View style={styles.eventHeader}>
+              <Text style={[styles.eventTitle, { color: colors.text }]}>Match de foot amical!</Text>
+              <View style={[styles.eventBadge, { backgroundColor: colors.primary }]}>
+                <Text style={styles.eventBadgeText}>Aujourd'hui!</Text>
+              </View>
+            </View>
+            <Text style={[styles.eventTime, { color: colors.textSecondary }]}>🕐 18h00 - 20h00</Text>
+            <Text style={[styles.eventLocation, { color: colors.textSecondary }]}>📍 Parc des Sports, Lyon</Text>
+            <Text style={[styles.eventParticipants, { color: colors.textSecondary }]}>👥 8/12 participants</Text>
+            <View style={styles.eventActions}>
+              <TouchableOpacity style={[styles.joinButton, { backgroundColor: colors.primary }]}>
+                <Text style={styles.joinButtonText}>Rejoindre!</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.detailsButton, { backgroundColor: colors.surface, borderColor: colors.primary }]}>
+                <Text style={[styles.detailsButtonText, { color: colors.primary }]}>Détails!</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <View style={[styles.eventCard, { backgroundColor: colors.surface }]}>
+            <View style={styles.eventHeader}>
+              <Text style={[styles.eventTitle, { color: colors.text }]}>Course à pied matinale!</Text>
+              <View style={[styles.eventBadge, { backgroundColor: colors.primary }]}>
+                <Text style={styles.eventBadgeText}>Demain!</Text>
+              </View>
+            </View>
+            <Text style={[styles.eventTime, { color: colors.textSecondary }]}>🕐 7h00 - 8h30</Text>
+            <Text style={[styles.eventLocation, { color: colors.textSecondary }]}>📍 Parc de la Tête d'Or</Text>
+            <Text style={[styles.eventParticipants, { color: colors.textSecondary }]}>👥 5/10 participants</Text>
+            <View style={styles.eventActions}>
+              <TouchableOpacity style={[styles.joinButton, { backgroundColor: colors.primary }]}>
+                <Text style={styles.joinButtonText}>Rejoindre!</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.detailsButton, { backgroundColor: colors.surface, borderColor: colors.primary }]}>
+                <Text style={[styles.detailsButtonText, { color: colors.primary }]}>Détails!</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <View style={[styles.eventCard, { backgroundColor: colors.surface }]}>
+            <View style={styles.eventHeader}>
+              <Text style={[styles.eventTitle, { color: colors.text }]}>Basket en salle!</Text>
+              <View style={[styles.eventBadge, { backgroundColor: colors.primary }]}>
+                <Text style={styles.eventBadgeText}>Samedi!</Text>
+              </View>
+            </View>
+            <Text style={[styles.eventTime, { color: colors.textSecondary }]}>🕐 20h00 - 22h00</Text>
+            <Text style={[styles.eventLocation, { color: colors.textSecondary }]}>📍 Gymnase municipal</Text>
+            <Text style={[styles.eventParticipants, { color: colors.textSecondary }]}>👥 10/12 participants</Text>
+            <View style={styles.eventActions}>
+              <TouchableOpacity style={[styles.joinButton, { backgroundColor: colors.primary }]}>
+                <Text style={styles.joinButtonText}>Rejoindre!</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.detailsButton, { backgroundColor: colors.surface, borderColor: colors.primary }]}>
+                <Text style={[styles.detailsButtonText, { color: colors.primary }]}>Détails!</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <View style={[styles.eventCard, { backgroundColor: colors.surface }]}>
+            <View style={styles.eventHeader}>
+              <Text style={[styles.eventTitle, { color: colors.text }]}>Séance de musculation!</Text>
+              <View style={[styles.eventBadge, { backgroundColor: colors.primary }]}>
+                <Text style={styles.eventBadgeText}>Lundi!</Text>
+              </View>
+            </View>
+            <Text style={[styles.eventTime, { color: colors.textSecondary }]}>🕐 19h00 - 20h30</Text>
+            <Text style={[styles.eventLocation, { color: colors.textSecondary }]}>📍 Salle de sport Premium</Text>
+            <Text style={[styles.eventParticipants, { color: colors.textSecondary }]}>👥 3/8 participants</Text>
+            <View style={styles.eventActions}>
+              <TouchableOpacity style={[styles.joinButton, { backgroundColor: colors.primary }]}>
+                <Text style={styles.joinButtonText}>Rejoindre!</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.detailsButton, { backgroundColor: colors.surface, borderColor: colors.primary }]}>
+                <Text style={[styles.detailsButtonText, { color: colors.primary }]}>Détails!</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <View style={[styles.eventCard, { backgroundColor: colors.surface }]}>
+            <View style={styles.eventHeader}>
+              <Text style={[styles.eventTitle, { color: colors.text }]}>Tennis en double!</Text>
+              <View style={[styles.eventBadge, { backgroundColor: colors.primary }]}>
+                <Text style={styles.eventBadgeText}>Mercredi!</Text>
+              </View>
+            </View>
+            <Text style={[styles.eventTime, { color: colors.textSecondary }]}>🕐 17h00 - 19h00</Text>
+            <Text style={[styles.eventLocation, { color: colors.textSecondary }]}>📍 Tennis Club Lyon</Text>
+            <Text style={[styles.eventParticipants, { color: colors.textSecondary }]}>👥 4/4 participants</Text>
+            <View style={styles.eventActions}>
+              <TouchableOpacity style={[styles.joinButton, styles.joinButtonFull, { backgroundColor: colors.textTertiary }]}>
+                <Text style={styles.joinButtonText}>Complet!</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.detailsButton, { backgroundColor: colors.surface, borderColor: colors.primary }]}>
+                <Text style={[styles.detailsButtonText, { color: colors.primary }]}>Détails!</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+
+        {/* Create Event CTA */}
+        <View style={styles.createEventSection}>
+          <View style={[styles.createEventCard, { backgroundColor: colors.primary }]}>
+            <Text style={styles.createEventTitle}>Crée ton propre événement!</Text>
+            <Text style={styles.createEventDesc}>
+              Organise une activité sportive et rejoins la communauté KomOn!
+            </Text>
+            <TouchableOpacity style={[styles.createEventButton, { backgroundColor: colors.background }]}>
+              <Text style={[styles.createEventButtonText, { color: colors.primary }]}>Créer un événement!</Text>
             </TouchableOpacity>
           </View>
-
-          {/* Filters */}
-          <View style={styles.filtersSection}>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <TouchableOpacity style={[styles.filterChip, styles.filterChipActive]}>
-                <Text style={styles.filterChipTextActive}>Tous</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.filterChip}>
-                <Text style={styles.filterChipText}>Football</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.filterChip}>
-                <Text style={styles.filterChipText}>Basketball</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.filterChip}>
-                <Text style={styles.filterChipText}>Course</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.filterChip}>
-                <Text style={styles.filterChipText}>Tennis</Text>
-              </TouchableOpacity>
-            </ScrollView>
-          </View>
-
-          {/* Events List */}
-          <View style={styles.eventsSection}>
-            <View style={styles.eventCard}>
-              <View style={styles.eventHeader}>
-                <Text style={styles.eventTitle}>Match de foot amical</Text>
-                <View style={styles.eventBadge}>
-                  <Text style={styles.eventBadgeText}>Aujourd'hui</Text>
-                </View>
-              </View>
-              <Text style={styles.eventTime}>🕐 18h00 - 20h00</Text>
-              <Text style={styles.eventLocation}>📍 Parc des Sports, Lyon</Text>
-              <Text style={styles.eventParticipants}>👥 8/12 participants</Text>
-              <View style={styles.eventActions}>
-                <TouchableOpacity style={styles.joinButton}>
-                  <Text style={styles.joinButtonText}>Rejoindre</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.detailsButton}>
-                  <Text style={styles.detailsButtonText}>Détails</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            <View style={styles.eventCard}>
-              <View style={styles.eventHeader}>
-                <Text style={styles.eventTitle}>Course à pied matinale</Text>
-                <View style={styles.eventBadge}>
-                  <Text style={styles.eventBadgeText}>Demain</Text>
-                </View>
-              </View>
-              <Text style={styles.eventTime}>🕐 7h00 - 8h30</Text>
-              <Text style={styles.eventLocation}>📍 Parc de la Tête d'Or</Text>
-              <Text style={styles.eventParticipants}>👥 5/10 participants</Text>
-              <View style={styles.eventActions}>
-                <TouchableOpacity style={styles.joinButton}>
-                  <Text style={styles.joinButtonText}>Rejoindre</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.detailsButton}>
-                  <Text style={styles.detailsButtonText}>Détails</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            <View style={styles.eventCard}>
-              <View style={styles.eventHeader}>
-                <Text style={styles.eventTitle}>Basket en salle</Text>
-                <View style={styles.eventBadge}>
-                  <Text style={styles.eventBadgeText}>Samedi</Text>
-                </View>
-              </View>
-              <Text style={styles.eventTime}>🕐 20h00 - 22h00</Text>
-              <Text style={styles.eventLocation}>📍 Gymnase municipal</Text>
-              <Text style={styles.eventParticipants}>👥 10/12 participants</Text>
-              <View style={styles.eventActions}>
-                <TouchableOpacity style={styles.joinButton}>
-                  <Text style={styles.joinButtonText}>Rejoindre</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.detailsButton}>
-                  <Text style={styles.detailsButtonText}>Détails</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            <View style={styles.eventCard}>
-              <View style={styles.eventHeader}>
-                <Text style={styles.eventTitle}>Tennis en double</Text>
-                <View style={styles.eventBadge}>
-                  <Text style={styles.eventBadgeText}>Dimanche</Text>
-                </View>
-              </View>
-              <Text style={styles.eventTime}>🕐 14h00 - 16h00</Text>
-              <Text style={styles.eventLocation}>📍 Courts de tennis</Text>
-              <Text style={styles.eventParticipants}>👥 3/4 participants</Text>
-              <View style={styles.eventActions}>
-                <TouchableOpacity style={styles.joinButton}>
-                  <Text style={styles.joinButtonText}>Rejoindre</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.detailsButton}>
-                  <Text style={styles.detailsButtonText}>Détails</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-        </ScrollView>
-      </SafeAreaView>
-    </>
+        </View>
+      </ScrollView>
+    </SafeAreaWrapper>
   );
 }
 
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#f7fafc',
   },
-  scrollContainer: {
+  fixedHeader: {
     paddingHorizontal: 20,
     paddingTop: 20,
-    paddingBottom: 40,
+    paddingBottom: 20,
+    borderBottomWidth: 1,
   },
-  header: {
+  headerTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 16,
   },
-  headerTitle: {
-    fontSize: 24,
+  logoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  logoBox: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#FF6B35',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  logoText: {
+    fontSize: 18,
     fontWeight: 'bold',
-    color: '#2d3748',
   },
   createButton: {
-    backgroundColor: '#319795',
     paddingHorizontal: 16,
     paddingVertical: 8,
-    borderRadius: 8,
+    borderRadius: 20,
+    shadowColor: '#FF6B35',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
   },
   createButtonText: {
     color: '#ffffff',
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: 'bold',
+  },
+  userInfo: {
+    marginBottom: 20,
+  },
+  welcomeText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  subtitleText: {
+    fontSize: 14,
   },
   filtersSection: {
-    marginBottom: 24,
+    marginBottom: 20,
   },
   filterChip: {
-    backgroundColor: '#ffffff',
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
-    marginRight: 12,
+    marginRight: 8,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
   },
   filterChipActive: {
-    backgroundColor: '#319795',
-    borderColor: '#319795',
+    borderColor: '#FF6B35',
   },
   filterChipText: {
-    color: '#4a5568',
     fontSize: 14,
     fontWeight: '500',
   },
   filterChipTextActive: {
-    color: '#ffffff',
     fontSize: 14,
-    fontWeight: '500',
+    color: '#ffffff',
+    fontWeight: 'bold',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContainer: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 100,
   },
   eventsSection: {
-    gap: 16,
+    marginBottom: 32,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 16,
   },
   eventCard: {
-    backgroundColor: '#ffffff',
-    padding: 16,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    padding: 20,
+    borderRadius: 16,
+    marginBottom: 16,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   eventHeader: {
     flexDirection: 'row',
@@ -218,33 +312,29 @@ const styles = StyleSheet.create({
   eventTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#2d3748',
     flex: 1,
+    marginRight: 12,
   },
   eventBadge: {
-    backgroundColor: '#319795',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
   },
   eventBadgeText: {
-    color: '#ffffff',
     fontSize: 12,
-    fontWeight: '600',
+    color: '#ffffff',
+    fontWeight: 'bold',
   },
   eventTime: {
     fontSize: 14,
-    color: '#718096',
     marginBottom: 4,
   },
   eventLocation: {
     fontSize: 14,
-    color: '#718096',
     marginBottom: 4,
   },
   eventParticipants: {
     fontSize: 14,
-    color: '#718096',
     marginBottom: 16,
   },
   eventActions: {
@@ -252,31 +342,67 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   joinButton: {
-    backgroundColor: '#319795',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 20,
     flex: 1,
+    alignItems: 'center',
+  },
+  joinButtonFull: {
+    backgroundColor: '#a0aec0',
   },
   joinButtonText: {
     color: '#ffffff',
     fontSize: 14,
-    fontWeight: '600',
-    textAlign: 'center',
+    fontWeight: 'bold',
   },
   detailsButton: {
-    backgroundColor: 'transparent',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#319795',
     flex: 1,
+    alignItems: 'center',
   },
   detailsButtonText: {
-    color: '#319795',
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: 'bold',
+  },
+  createEventSection: {
+    marginBottom: 32,
+  },
+  createEventCard: {
+    padding: 24,
+    borderRadius: 16,
+    alignItems: 'center',
+    shadowColor: '#FF6B35',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  createEventTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#ffffff',
+    marginBottom: 8,
     textAlign: 'center',
+  },
+  createEventDesc: {
+    fontSize: 14,
+    color: '#ffffff',
+    opacity: 0.9,
+    textAlign: 'center',
+    marginBottom: 20,
+    lineHeight: 20,
+  },
+  createEventButton: {
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 24,
+  },
+  createEventButtonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 }); 

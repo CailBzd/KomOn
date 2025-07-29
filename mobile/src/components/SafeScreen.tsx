@@ -1,101 +1,114 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   StyleSheet,
   StatusBar,
   Platform,
-  Dimensions,
-  ViewStyle,
+  LayoutChangeEvent,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useDeviceInfo, getDeviceMargins } from '../utils/deviceUtils';
-
-const { width, height } = Dimensions.get('window');
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTheme } from '../contexts/ThemeContext';
+import { useAppStateManager } from '../hooks/useAppStateManager';
 
 interface SafeScreenProps {
   children: React.ReactNode;
-  style?: ViewStyle;
-  statusBarStyle?: 'light-content' | 'dark-content' | 'default';
+  style?: any;
+  contentContainerStyle?: any;
+  statusBarStyle?: 'default' | 'light-content' | 'dark-content';
   statusBarBackgroundColor?: string;
-  statusBarTranslucent?: boolean;
-  backgroundColor?: string;
-  edges?: ('top' | 'bottom' | 'left' | 'right')[];
-  paddingTop?: number;
-  paddingBottom?: number;
-  paddingHorizontal?: number;
-  extraTopPadding?: number; // Padding supplémentaire pour les appareils avec notch/Dynamic Island
-  extraBottomPadding?: number; // Padding supplémentaire pour la barre de navigation
+  forceRefresh?: boolean;
 }
 
-export default function SafeScreen({
+function SafeScreenContent({
   children,
   style,
-  statusBarStyle = 'dark-content',
-  statusBarBackgroundColor = 'transparent',
-  statusBarTranslucent = true,
-  backgroundColor = '#f7fafc',
-  edges = ['top', 'bottom', 'left', 'right'],
-  paddingTop = 0,
-  paddingBottom = 0,
-  paddingHorizontal = 20,
-  extraTopPadding = 0,
-  extraBottomPadding = 0,
+  contentContainerStyle,
+  statusBarStyle,
+  statusBarBackgroundColor,
+  forceRefresh = false,
 }: SafeScreenProps) {
+  const { colors } = useTheme();
+  const { appState, isActive, forceRefresh: appForceRefresh, lastActiveTime } = useAppStateManager();
   const insets = useSafeAreaInsets();
-  const deviceInfo = useDeviceInfo();
-  const deviceMargins = getDeviceMargins(deviceInfo);
+  const [key, setKey] = useState(0);
 
-  const getStatusBarHeight = () => {
-    const baseHeight = deviceInfo.statusBarHeight;
-    const extraMargin = deviceMargins.statusBarMargin;
-    return baseHeight + extraMargin + extraTopPadding;
+  // Forcer le rafraîchissement quand l'état de l'app change
+  useEffect(() => {
+    if (isActive) {
+      console.log('App is active, forcing refresh');
+      setKey(prev => prev + 1);
+      
+      // Recalculer après un délai
+      setTimeout(() => {
+        setKey(prev => prev + 1);
+      }, 100);
+    }
+  }, [isActive, lastActiveTime]);
+
+  // Forcer le rafraîchissement si demandé
+  useEffect(() => {
+    if (forceRefresh) {
+      appForceRefresh();
+    }
+  }, [forceRefresh, appForceRefresh]);
+
+  // Gérer les changements de layout
+  const handleLayoutChange = (event: LayoutChangeEvent) => {
+    const { width, height } = event.nativeEvent.layout;
+    console.log('Layout changed:', { width, height });
   };
 
-  const getBottomInset = () => {
-    const baseInset = deviceInfo.bottomInset;
-    const extraMargin = deviceMargins.navigationExtraBottom;
-    return baseInset + extraMargin + extraBottomPadding;
-  };
+  // Calculer les marges avec react-native-safe-area-context
+  const getDynamicMargins = () => {
+    // Utiliser les insets de react-native-safe-area-context
+    const topMargin = insets.top + 20; // +20 pour sécurité
+    const bottomMargin = insets.bottom + 30; // +30 pour sécurité
 
-  const getHorizontalInsets = () => {
-    // Gérer les bords arrondis et les encoches latérales
-    const leftInset = edges.includes('left') ? Math.max(insets.left, 5) : 0;
-    const rightInset = edges.includes('right') ? Math.max(insets.right, 5) : 0;
-    return { leftInset, rightInset };
-  };
-
-  const getDynamicPadding = () => {
-    const topPadding = edges.includes('top') 
-      ? Math.max(getStatusBarHeight(), paddingTop) + extraTopPadding 
-      : paddingTop;
-    
-    const bottomPadding = edges.includes('bottom') 
-      ? Math.max(getBottomInset(), paddingBottom) + extraBottomPadding 
-      : paddingBottom;
-    
-    const { leftInset, rightInset } = getHorizontalInsets();
-    const horizontalPadding = edges.includes('left') && edges.includes('right') 
-      ? Math.max(paddingHorizontal, leftInset, rightInset, deviceMargins.horizontalMargin) 
-      : 0;
+    console.log('Safe area insets:', insets);
+    console.log('Calculated margins:', {
+      topMargin,
+      bottomMargin,
+      appState,
+      isActive
+    });
 
     return {
-      paddingTop: topPadding,
-      paddingBottom: bottomPadding,
-      paddingHorizontal: horizontalPadding,
+      paddingTop: topMargin,
+      paddingBottom: bottomMargin,
     };
   };
 
+  const dynamicMargins = getDynamicMargins();
+  const currentStatusBarStyle = statusBarStyle || (colors.text === '#f7fafc' ? 'light-content' : 'dark-content');
+  const currentStatusBarBackground = statusBarBackgroundColor || colors.background;
+
   return (
-    <View style={[styles.container, { backgroundColor }]}>
-      <StatusBar
-        barStyle={statusBarStyle}
-        backgroundColor={statusBarBackgroundColor}
-        translucent={statusBarTranslucent}
+    <View 
+      style={[styles.container, { backgroundColor: colors.background }, style]} 
+      key={key}
+      onLayout={handleLayoutChange}
+    >
+      <StatusBar 
+        barStyle={currentStatusBarStyle} 
+        backgroundColor={currentStatusBarBackground}
+        translucent={Platform.OS === 'android'}
       />
-      <View style={[styles.content, getDynamicPadding(), style]}>
+      <View style={[
+        styles.content,
+        dynamicMargins,
+        contentContainerStyle
+      ]}>
         {children}
       </View>
     </View>
+  );
+}
+
+export default function SafeScreen(props: SafeScreenProps) {
+  return (
+    <SafeAreaProvider>
+      <SafeScreenContent {...props} />
+    </SafeAreaProvider>
   );
 }
 
@@ -105,5 +118,6 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+    paddingHorizontal: 20,
   },
 }); 

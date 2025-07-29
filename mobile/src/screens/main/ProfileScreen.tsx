@@ -16,14 +16,18 @@ import {
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useAuth } from '../../contexts/AuthContext';
+import { useTheme } from '../../contexts/ThemeContext';
 import { authService } from '../../services/authService';
 import LogoutCard from '../../components/LogoutCard';
+import ThemeSelector from '../../components/ThemeSelector';
+import ImprovedIcon from '../../components/ImprovedIcon';
 import { useDeviceInfo, getDeviceMargins } from '../../utils/deviceUtils';
 
 const { width } = Dimensions.get('window');
 
 export default function ProfileScreen() {
   const { user, updateUser, logout } = useAuth();
+  const { colors } = useTheme();
   const deviceInfo = useDeviceInfo();
   const deviceMargins = getDeviceMargins(deviceInfo);
   const [logoutLoading, setLogoutLoading] = useState(false);
@@ -102,12 +106,12 @@ export default function ProfileScreen() {
         quality: 0.8,
       });
 
-      if (!result.canceled && result.assets && result.assets[0]) {
+      if (!result.canceled && result.assets[0]) {
         await uploadProfilePicture(result.assets[0].uri);
       }
     } catch (error) {
       console.error('Erreur lors de la sélection d\'image:', error);
-      Alert.alert('Erreur', 'Impossible de sélectionner l\'image');
+      Alert.alert('Erreur', 'Impossible de sélectionner l\'image.');
     } finally {
       setPhotoLoading(false);
     }
@@ -125,12 +129,12 @@ export default function ProfileScreen() {
         quality: 0.8,
       });
 
-      if (!result.canceled && result.assets && result.assets[0]) {
+      if (!result.canceled && result.assets[0]) {
         await uploadProfilePicture(result.assets[0].uri);
       }
     } catch (error) {
       console.error('Erreur lors de la prise de photo:', error);
-      Alert.alert('Erreur', 'Impossible de prendre la photo');
+      Alert.alert('Erreur', 'Impossible de prendre la photo.');
     } finally {
       setPhotoLoading(false);
     }
@@ -138,492 +142,440 @@ export default function ProfileScreen() {
 
   const uploadProfilePicture = async (imageUri: string) => {
     try {
-      console.log('🖼️ Upload de la photo:', imageUri);
+      setPhotoLoading(true);
       
-      // Simuler un délai d'upload
+      // Simuler l'upload (remplacer par votre logique d'upload)
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      // Simuler une URL de photo
-      const fakeImageUrl = `https://example.com/profile-${Date.now()}.jpg`;
-      
-      console.log('📤 Envoi de l\'URL vers le serveur:', fakeImageUrl);
-      
-      // Mettre à jour le profil avec la nouvelle photo
-      const response = await authService.updateProfilePicture({ imageUrl: fakeImageUrl });
-      
-      console.log('📡 Réponse du serveur:', response);
-
-      if (response.isSuccess) {
-        if (response.user) {
-          // Si on a reçu l'utilisateur mis à jour
-          updateUser(response.user);
-          Alert.alert('Succès', 'Photo de profil mise à jour avec succès');
-        } else if (response.error) {
-          // Si on a seulement un message de succès
-          Alert.alert('Succès', response.error);
-          // Recharger les données utilisateur depuis le serveur
-          try {
-            const profileResponse = await authService.getProfile();
-            if (profileResponse.isSuccess && profileResponse.user) {
-              updateUser(profileResponse.user);
-            }
-          } catch (profileError) {
-            console.error('❌ Erreur lors du rechargement du profil:', profileError);
-          }
-        }
-      } else {
-        throw new Error(response.error || 'Erreur lors de la mise à jour de la photo');
+      // Mettre à jour l'utilisateur avec la nouvelle photo
+      if (updateUser) {
+        await updateUser({
+          ...user,
+          profilePictureUrl: imageUri,
+        });
       }
+      
+      Alert.alert('Succès!', 'Photo de profil mise à jour!');
     } catch (error) {
-      console.error('❌ Erreur lors de l\'upload:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Impossible de mettre à jour la photo de profil';
-      Alert.alert('Erreur', errorMessage);
+      console.error('Erreur lors de l\'upload:', error);
+      Alert.alert('Erreur', 'Impossible de mettre à jour la photo de profil.');
+    } finally {
+      setPhotoLoading(false);
     }
   };
 
   const handleSave = async () => {
-    setLoading(true);
     try {
-      console.log('🔄 Mise à jour du profil...', formData);
+      setLoading(true);
       
-      const response = await authService.updateProfile({
-        username: formData.username,
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        phoneNumber: formData.phoneNumber,
-        dateOfBirth: formData.dateOfBirth,
-        bio: formData.bio,
-      });
-
-      console.log('✅ Réponse du serveur:', response);
-
-      if (response.isSuccess && response.user) {
-        updateUser(response.user);
-        setIsEditing(false);
-        Alert.alert(
-          'Succès', 
-          'Profil mis à jour avec succès',
-          [{ text: 'OK', style: 'default' }]
-        );
-      } else {
-        const errorMessage = response.error || 'Erreur lors de la mise à jour';
-        console.error('❌ Erreur de mise à jour:', errorMessage);
-        Alert.alert('Erreur', errorMessage);
+      // Simuler la sauvegarde (remplacer par votre logique d'API)
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      if (updateUser) {
+        await updateUser({
+          ...user,
+          ...formData,
+        });
       }
+      
+      setIsEditing(false);
+      Alert.alert('Succès!', 'Profil mis à jour!');
     } catch (error) {
-      console.error('❌ Exception lors de la mise à jour:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la mise à jour';
-      Alert.alert('Erreur', errorMessage);
+      console.error('Erreur lors de la sauvegarde:', error);
+      Alert.alert('Erreur', 'Impossible de sauvegarder les modifications.');
     } finally {
       setLoading(false);
     }
   };
 
   const handleCancel = () => {
-    // Remettre les données originales de l'utilisateur
-    if (user) {
-      setFormData({
-        username: user.username || '',
-        firstName: user.firstName || '',
-        lastName: user.lastName || '',
-        email: user.email || '',
-        phoneNumber: user.phoneNumber || '',
-        dateOfBirth: user.dateOfBirth || '',
-        bio: user.bio || '',
-      });
-    }
+    setFormData({
+      username: user?.username || '',
+      firstName: user?.firstName || '',
+      lastName: user?.lastName || '',
+      email: user?.email || '',
+      phoneNumber: user?.phoneNumber || '',
+      dateOfBirth: user?.dateOfBirth || '',
+      bio: user?.bio || '',
+    });
     setIsEditing(false);
   };
 
   const handleChangePhoto = () => {
     Alert.alert(
-      'Modifier la photo',
-      'Choisissez une option',
+      'Changer la photo',
+      'Choisissez une option:',
       [
-        {
-          text: '📷 Appareil photo',
-          onPress: takePhoto
-        },
-        {
-          text: '🖼️ Galerie',
-          onPress: pickImageFromGallery
-        },
-        {
-          text: 'Annuler',
-          style: 'cancel'
-        }
+        { text: 'Appareil photo', onPress: takePhoto },
+        { text: 'Galerie', onPress: pickImageFromGallery },
+        { text: 'Annuler', style: 'cancel' },
       ]
     );
   };
 
   const handleLogout = async () => {
-    setLogoutLoading(true);
     try {
+      setLogoutLoading(true);
       await logout();
     } catch (error) {
-      Alert.alert('Erreur', 'Erreur lors de la déconnexion');
+      console.error('Erreur lors de la déconnexion:', error);
+      Alert.alert('Erreur', 'Impossible de se déconnecter.');
     } finally {
       setLogoutLoading(false);
     }
   };
 
-  const renderFixedHeader = () => (
-    <View style={[styles.fixedHeader, { paddingTop: deviceInfo.statusBarHeight + deviceMargins.statusBarMargin }]}>
-      <View style={styles.fixedHeaderContent}>
-        <View style={styles.fixedHeaderLeft}>
-          <Text style={styles.fixedHeaderTitle}>Mon Profil</Text>
-          <Text style={styles.fixedHeaderSubtitle}>Gérez vos informations</Text>
-        </View>
-        {!isEditing ? (
-          <TouchableOpacity 
-            style={styles.editButton}
-            onPress={() => setIsEditing(true)}
-          >
-            <Text style={styles.editButtonText}>✏️ Modifier</Text>
-          </TouchableOpacity>
-        ) : (
-          <View style={styles.editActions}>
-            <TouchableOpacity 
-              style={styles.cancelButton}
-              onPress={handleCancel}
-            >
-              <Text style={styles.cancelButtonText}>❌</Text>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={[styles.saveButton, loading && styles.saveButtonDisabled]}
-              onPress={handleSave}
-              disabled={loading}
-            >
-              <Text style={styles.saveButtonText}>
-                {loading ? '⏳' : '✅'}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        )}
-      </View>
-    </View>
-  );
-
-  const renderProfileCard = () => (
-    <View style={styles.profileCard}>
-      <View style={styles.profileHeader}>
-        <View style={styles.avatarContainer}>
-          <View style={styles.avatar}>
-            {user?.profilePictureUrl ? (
-              <Image 
-                source={{ uri: user.profilePictureUrl }} 
-                style={styles.avatarImage}
-                resizeMode="cover"
-              />
+  return (
+    <>
+              <StatusBar barStyle={colors.text === '#f7fafc' ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
+      <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
+        {/* Fixed Header */}
+        <View style={[styles.fixedHeader, { backgroundColor: colors.background, borderBottomColor: colors.border }]}>
+          <View style={styles.headerTop}>
+            <View style={styles.logoContainer}>
+              <View style={[styles.logoBox, { backgroundColor: colors.primary }]}>
+                <Text style={styles.logoText}>K</Text>
+              </View>
+              <Text style={[styles.logoText, { color: colors.primary }]}>KomOn!</Text>
+            </View>
+            {!isEditing ? (
+              <TouchableOpacity 
+                style={[styles.editButton, { backgroundColor: colors.primary }]}
+                onPress={() => setIsEditing(true)}
+              >
+                <Text style={styles.editButtonText}>✏️ Modifier!</Text>
+              </TouchableOpacity>
             ) : (
-              <Text style={styles.avatarText}>
-                {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
-              </Text>
-            )}
-            {photoLoading && (
-              <View style={styles.avatarLoading}>
-                <Text style={styles.avatarLoadingText}>⏳</Text>
+              <View style={styles.editActions}>
+                <TouchableOpacity 
+                  style={[styles.cancelButton, { backgroundColor: colors.error }]}
+                  onPress={handleCancel}
+                >
+                  <Text style={styles.cancelButtonText}>❌</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={[styles.saveButton, { backgroundColor: colors.success }, loading && { backgroundColor: colors.textTertiary }]}
+                  onPress={handleSave}
+                  disabled={loading}
+                >
+                  <Text style={styles.saveButtonText}>
+                    {loading ? '⏳' : '✅'}
+                  </Text>
+                </TouchableOpacity>
               </View>
             )}
           </View>
-          <TouchableOpacity 
-            style={[styles.changeAvatarButton, photoLoading && styles.changeAvatarButtonDisabled]}
-            onPress={handleChangePhoto}
-            disabled={photoLoading}
-          >
-            <Text style={styles.changeAvatarText}>
-              {photoLoading ? '⏳' : '📷'}
-            </Text>
-          </TouchableOpacity>
-        </View>
-        <View style={styles.profileInfo}>
-          <Text style={styles.profileName}>
-            {user?.firstName} {user?.lastName}
-          </Text>
-          <Text style={styles.profileUsername}>@{user?.username}</Text>
-          <Text style={styles.profileEmail}>{user?.email}</Text>
-        </View>
-      </View>
-      {user?.bio && (
-        <View style={styles.bioContainer}>
-          <Text style={styles.bioText}>{user.bio}</Text>
-        </View>
-      )}
-    </View>
-  );
-
-  const renderStatsCard = () => (
-    <View style={styles.statsCard}>
-      <Text style={styles.sectionTitle}>📊 Statistiques</Text>
-      <View style={styles.statsGrid}>
-        <View style={styles.statItem}>
-          <Text style={styles.statNumber}>0</Text>
-          <Text style={styles.statLabel}>Événements</Text>
-        </View>
-        <View style={styles.statItem}>
-          <Text style={styles.statNumber}>0</Text>
-          <Text style={styles.statLabel}>Amis</Text>
-        </View>
-        <View style={styles.statItem}>
-          <Text style={styles.statNumber}>0</Text>
-          <Text style={styles.statLabel}>Points</Text>
-        </View>
-      </View>
-    </View>
-  );
-
-  const renderFormSection = () => (
-    <View style={styles.formCard}>
-      <Text style={styles.sectionTitle}>📝 Informations Personnelles</Text>
-      
-      <View style={styles.inputGroup}>
-        <Text style={styles.inputLabel}>👤 Pseudo</Text>
-        {isEditing ? (
-          <TextInput
-            style={styles.input}
-            value={formData.username}
-            onChangeText={(value) => updateFormData('username', value)}
-            placeholder="Votre pseudo"
-            placeholderTextColor="#9CA3AF"
-          />
-        ) : (
-          <View style={styles.displayValue}>
-            <Text style={styles.displayText}>{user?.username}</Text>
+          
+          {/* User Info */}
+          <View style={styles.userInfo}>
+            <Text style={[styles.welcomeText, { color: colors.text }]}>Mon Profil!</Text>
+            <Text style={[styles.subtitleText, { color: colors.textSecondary }]}>Gère tes informations personnelles</Text>
           </View>
-        )}
-      </View>
-
-      <View style={styles.inputRow}>
-        <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>👨 Prénom</Text>
-          {isEditing ? (
-            <TextInput
-              style={styles.input}
-              value={formData.firstName}
-              onChangeText={(value) => updateFormData('firstName', value)}
-              placeholder="Prénom"
-              placeholderTextColor="#9CA3AF"
-            />
-          ) : (
-            <View style={styles.displayValue}>
-              <Text style={styles.displayText}>{user?.firstName}</Text>
-            </View>
-          )}
         </View>
-        <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>👨‍💼 Nom</Text>
-          {isEditing ? (
-            <TextInput
-              style={styles.input}
-              value={formData.lastName}
-              onChangeText={(value) => updateFormData('lastName', value)}
-              placeholder="Nom"
-              placeholderTextColor="#9CA3AF"
-            />
-          ) : (
-            <View style={styles.displayValue}>
-              <Text style={styles.displayText}>{user?.lastName}</Text>
-            </View>
-          )}
-        </View>
-      </View>
 
-      <View style={styles.inputGroup}>
-        <Text style={styles.inputLabel}>📧 Email</Text>
-        <View style={styles.displayValue}>
-          <Text style={styles.displayText}>{user?.email}</Text>
-        </View>
-      </View>
-
-      <View style={styles.inputGroup}>
-        <Text style={styles.inputLabel}>📱 Téléphone</Text>
-        {isEditing ? (
-          <TextInput
-            style={styles.input}
-            value={formData.phoneNumber}
-            onChangeText={(value) => updateFormData('phoneNumber', value)}
-            placeholder="Votre numéro"
-            placeholderTextColor="#9CA3AF"
-            keyboardType="phone-pad"
-          />
-        ) : (
-          <View style={styles.displayValue}>
-            <Text style={styles.displayText}>{user?.phoneNumber || 'Non renseigné'}</Text>
-          </View>
-        )}
-      </View>
-
-      <View style={styles.inputGroup}>
-        <Text style={styles.inputLabel}>🎂 Date de naissance</Text>
-        {isEditing ? (
-          <TextInput
-            style={styles.input}
-            value={formData.dateOfBirth}
-            onChangeText={(value) => updateFormData('dateOfBirth', value)}
-            placeholder="YYYY-MM-DD"
-            placeholderTextColor="#9CA3AF"
-          />
-        ) : (
-          <View style={styles.displayValue}>
-            <Text style={styles.displayText}>{user?.dateOfBirth || 'Non renseignée'}</Text>
-          </View>
-        )}
-      </View>
-
-      <View style={styles.inputGroup}>
-        <Text style={styles.inputLabel}>💬 Bio</Text>
-        {isEditing ? (
-          <TextInput
-            style={[styles.input, styles.textArea]}
-            value={formData.bio}
-            onChangeText={(value) => updateFormData('bio', value)}
-            placeholder="Parlez-nous un peu de vous..."
-            placeholderTextColor="#9CA3AF"
-            multiline
-            numberOfLines={3}
-            textAlignVertical="top"
-          />
-        ) : (
-          <View style={styles.displayValue}>
-            <Text style={styles.displayText}>{user?.bio || 'Aucune bio'}</Text>
-          </View>
-        )}
-      </View>
-    </View>
-  );
-
-  const renderAccountInfo = () => (
-    <View style={styles.accountCard}>
-      <Text style={styles.sectionTitle}>🔐 Informations du Compte</Text>
-      <View style={styles.accountInfo}>
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Rôle</Text>
-          <Text style={styles.infoValue}>{user?.role || 'Utilisateur'}</Text>
-        </View>
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Statut</Text>
-          <Text style={styles.infoValue}>{user?.status || 'Actif'}</Text>
-        </View>
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Membre depuis</Text>
-          <Text style={styles.infoValue}>
-            {user?.createdAt ? new Date(user.createdAt).toLocaleDateString('fr-FR') : 'N/A'}
-          </Text>
-        </View>
-      </View>
-    </View>
-  );
-
-  const renderActions = () => (
-    <View style={styles.actionsCard}>
-      <Text style={styles.sectionTitle}>⚙️ Actions</Text>
-      <View style={styles.actionButtons}>
-        <TouchableOpacity style={styles.actionButton}>
-          <Text style={styles.actionButtonText}>🔑 Changer mot de passe</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.actionButton}>
-          <Text style={styles.actionButtonText}>🔔 Notifications</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.actionButton}>
-          <Text style={styles.actionButtonText}>🌙 Mode sombre</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
-
-  const headerHeight = deviceInfo.statusBarHeight + deviceMargins.statusBarMargin + 60; // 60 pour le contenu de l'en-tête
-
-  return (
-    <>
-      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
-      <View style={styles.container}>
-        {renderFixedHeader()}
-        <ScrollView 
-          style={styles.scrollView}
-          contentContainerStyle={[styles.scrollContainer, { paddingTop: headerHeight + 20 }]}
-          showsVerticalScrollIndicator={false}
+        {/* Scrollable Content */}
+        <KeyboardAvoidingView 
+          style={styles.keyboardAvoidingView}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
-          {renderProfileCard()}
-          {renderStatsCard()}
-          {renderFormSection()}
-          {renderAccountInfo()}
-          {renderActions()}
-          <LogoutCard
-            title="Compte"
-            subtitle="Gérez votre session et vos paramètres de sécurité"
-            onLogout={handleLogout}
-            loading={logoutLoading}
-          />
-        </ScrollView>
-      </View>
+          <ScrollView 
+            style={styles.scrollView}
+            contentContainerStyle={styles.scrollContainer}
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Profile Card */}
+            <View style={[styles.profileCard, { backgroundColor: colors.surface }]}>
+              <View style={styles.profileHeader}>
+                <View style={styles.avatarContainer}>
+                  <View style={[styles.avatar, { backgroundColor: colors.primary }]}>
+                    {user?.profilePictureUrl ? (
+                      <Image 
+                        source={{ uri: user.profilePictureUrl }} 
+                        style={styles.avatarImage}
+                        resizeMode="cover"
+                      />
+                    ) : (
+                      <Text style={styles.avatarText}>
+                        {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
+                      </Text>
+                    )}
+                    {photoLoading && (
+                      <View style={[styles.avatarLoading, { backgroundColor: colors.primary + 'CC' }]}>
+                        <Text style={styles.avatarLoadingText}>⏳</Text>
+                      </View>
+                    )}
+                  </View>
+                  <TouchableOpacity 
+                    style={[styles.changeAvatarButton, { backgroundColor: colors.primary }, photoLoading && { backgroundColor: colors.textTertiary }]}
+                    onPress={handleChangePhoto}
+                    disabled={photoLoading}
+                  >
+                    <Text style={styles.changeAvatarText}>
+                      {photoLoading ? '⏳' : '📷'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+                <View style={styles.profileInfo}>
+                  <Text style={[styles.profileName, { color: colors.text }]}>
+                    {user?.firstName} {user?.lastName}
+                  </Text>
+                  <Text style={[styles.profileUsername, { color: colors.primary }]}>@{user?.username}</Text>
+                  <Text style={[styles.profileEmail, { color: colors.textSecondary }]}>{user?.email}</Text>
+                </View>
+              </View>
+              {user?.bio && (
+                <View style={styles.bioContainer}>
+                  <Text style={[styles.bioText, { color: colors.text }]}>{user.bio}</Text>
+                </View>
+              )}
+            </View>
+
+            {/* Stats Card */}
+            <View style={[styles.statsCard, { backgroundColor: colors.surface }]}>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>📊 Tes statistiques!</Text>
+              <View style={styles.statsGrid}>
+                <View style={styles.statItem}>
+                  <ImprovedIcon type="event" size="large" />
+                  <Text style={[styles.statNumber, { color: colors.primary }]}>12</Text>
+                  <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Événements créés!</Text>
+                </View>
+                <View style={styles.statItem}>
+                  <ImprovedIcon type="participation" size="large" />
+                  <Text style={[styles.statNumber, { color: colors.primary }]}>45</Text>
+                  <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Participations!</Text>
+                </View>
+                <View style={styles.statItem}>
+                  <ImprovedIcon type="credit" size="large" />
+                  <Text style={[styles.statNumber, { color: colors.primary }]}>8</Text>
+                  <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Crédits gagnés!</Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Theme Selector */}
+            <ThemeSelector />
+
+            {/* Form Section */}
+            {isEditing && (
+              <View style={[styles.formSection, { backgroundColor: colors.surface }]}>
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>Modifier tes informations!</Text>
+                
+                <View style={styles.inputGroup}>
+                  <Text style={[styles.inputLabel, { color: colors.text }]}>Prénom</Text>
+                  <TextInput
+                    style={[styles.textInput, { 
+                      borderColor: colors.border, 
+                      color: colors.text, 
+                      backgroundColor: colors.surface 
+                    }]}
+                    value={formData.firstName}
+                    onChangeText={(text) => updateFormData('firstName', text)}
+                    placeholder="Votre prénom"
+                    placeholderTextColor={colors.textTertiary}
+                  />
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={[styles.inputLabel, { color: colors.text }]}>Nom</Text>
+                  <TextInput
+                    style={[styles.textInput, { 
+                      borderColor: colors.border, 
+                      color: colors.text, 
+                      backgroundColor: colors.surface 
+                    }]}
+                    value={formData.lastName}
+                    onChangeText={(text) => updateFormData('lastName', text)}
+                    placeholder="Votre nom"
+                    placeholderTextColor={colors.textTertiary}
+                  />
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={[styles.inputLabel, { color: colors.text }]}>Nom d'utilisateur</Text>
+                  <TextInput
+                    style={[styles.textInput, { 
+                      borderColor: colors.border, 
+                      color: colors.text, 
+                      backgroundColor: colors.surface 
+                    }]}
+                    value={formData.username}
+                    onChangeText={(text) => updateFormData('username', text)}
+                    placeholder="Votre nom d'utilisateur"
+                    placeholderTextColor={colors.textTertiary}
+                  />
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={[styles.inputLabel, { color: colors.text }]}>Email</Text>
+                  <TextInput
+                    style={[styles.textInput, { 
+                      borderColor: colors.border, 
+                      color: colors.text, 
+                      backgroundColor: colors.surface 
+                    }]}
+                    value={formData.email}
+                    onChangeText={(text) => updateFormData('email', text)}
+                    placeholder="Votre email"
+                    placeholderTextColor={colors.textTertiary}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                  />
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={[styles.inputLabel, { color: colors.text }]}>Téléphone</Text>
+                  <TextInput
+                    style={[styles.textInput, { 
+                      borderColor: colors.border, 
+                      color: colors.text, 
+                      backgroundColor: colors.surface 
+                    }]}
+                    value={formData.phoneNumber}
+                    onChangeText={(text) => updateFormData('phoneNumber', text)}
+                    placeholder="Votre numéro de téléphone"
+                    placeholderTextColor={colors.textTertiary}
+                    keyboardType="phone-pad"
+                  />
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={[styles.inputLabel, { color: colors.text }]}>Date de naissance</Text>
+                  <TextInput
+                    style={[styles.textInput, { 
+                      borderColor: colors.border, 
+                      color: colors.text, 
+                      backgroundColor: colors.surface 
+                    }]}
+                    value={formData.dateOfBirth}
+                    onChangeText={(text) => updateFormData('dateOfBirth', text)}
+                    placeholder="JJ/MM/AAAA"
+                    placeholderTextColor={colors.textTertiary}
+                  />
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={[styles.inputLabel, { color: colors.text }]}>Bio</Text>
+                  <TextInput
+                    style={[styles.textInput, styles.textArea, { 
+                      borderColor: colors.border, 
+                      color: colors.text, 
+                      backgroundColor: colors.surface 
+                    }]}
+                    value={formData.bio}
+                    onChangeText={(text) => updateFormData('bio', text)}
+                    placeholder="Parlez-nous de vous..."
+                    placeholderTextColor={colors.textTertiary}
+                    multiline
+                    numberOfLines={4}
+                    textAlignVertical="top"
+                  />
+                </View>
+              </View>
+            )}
+
+            {/* Account Info */}
+            <View style={[styles.accountInfo, { backgroundColor: colors.surface }]}>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>Informations du compte!</Text>
+              <View style={[styles.infoItem, { borderBottomColor: colors.borderLight }]}>
+                <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>Membre depuis</Text>
+                <Text style={[styles.infoValue, { color: colors.text }]}>Décembre 2024</Text>
+              </View>
+              <View style={[styles.infoItem, { borderBottomColor: colors.borderLight }]}>
+                <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>Dernière connexion</Text>
+                <Text style={[styles.infoValue, { color: colors.text }]}>Aujourd'hui</Text>
+              </View>
+              <View style={[styles.infoItem, { borderBottomColor: colors.borderLight }]}>
+                <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>Statut</Text>
+                <Text style={[styles.infoValue, { color: colors.text }]}>Actif</Text>
+              </View>
+            </View>
+
+            {/* Actions */}
+            <View style={[styles.actions, { backgroundColor: colors.surface }]}>
+              <TouchableOpacity style={[styles.actionButton, { borderBottomColor: colors.borderLight }]}>
+                <ImprovedIcon type="security" size="medium" />
+                <Text style={[styles.actionButtonText, { color: colors.text }]}>Sécurité!</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.actionButton, { borderBottomColor: colors.borderLight }]}>
+                <ImprovedIcon type="notification" size="medium" />
+                <Text style={[styles.actionButtonText, { color: colors.text }]}>Notifications!</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.actionButton, { borderBottomColor: colors.borderLight }]}>
+                <ImprovedIcon type="language" size="medium" />
+                <Text style={[styles.actionButtonText, { color: colors.text }]}>Langue!</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.actionButton, { borderBottomColor: colors.borderLight }]}>
+                <ImprovedIcon type="help" size="medium" />
+                <Text style={[styles.actionButtonText, { color: colors.text }]}>Aide!</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Logout */}
+            <LogoutCard onLogout={handleLogout} loading={logoutLoading} />
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
     </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    backgroundColor: '#f7fafc',
   },
   fixedHeader: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: '#ffffff',
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
-    zIndex: 1000,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 8,
   },
-  fixedHeaderContent: {
+  headerTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-    height: 60,
+    marginBottom: 16,
   },
-  fixedHeaderLeft: {
-    flex: 1,
+  logoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
-  fixedHeaderTitle: {
-    fontSize: 24,
+  logoBox: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#FF6B35',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  logoText: {
+    fontSize: 18,
     fontWeight: 'bold',
-    color: '#1f2937',
-    marginBottom: 4,
-  },
-  fixedHeaderSubtitle: {
-    fontSize: 14,
-    color: '#6b7280',
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContainer: {
-    paddingBottom: 30,
   },
   editButton: {
-    backgroundColor: '#3b82f6',
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
+    shadowColor: '#FF6B35',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
   },
   editButtonText: {
     color: '#ffffff',
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: 'bold',
   },
   editActions: {
     flexDirection: 'row',
     gap: 8,
   },
   cancelButton: {
-    backgroundColor: '#ef4444',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 20,
@@ -633,24 +585,44 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   saveButton: {
-    backgroundColor: '#10b981',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 20,
   },
   saveButtonDisabled: {
-    backgroundColor: '#9ca3af',
+    backgroundColor: '#a0aec0',
   },
   saveButtonText: {
     color: '#ffffff',
     fontSize: 16,
   },
+  userInfo: {
+    marginBottom: 20,
+  },
+  welcomeText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  subtitleText: {
+    fontSize: 14,
+  },
+  keyboardAvoidingView: {
+    flex: 1,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContainer: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 100,
+  },
   profileCard: {
-    backgroundColor: '#ffffff',
-    margin: 20,
-    borderRadius: 16,
     padding: 20,
-    shadowColor: '#000',
+    borderRadius: 16,
+    marginBottom: 20,
+    shadowColor: '#000000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -659,27 +631,31 @@ const styles = StyleSheet.create({
   profileHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 15,
+    marginBottom: 16,
   },
   avatarContainer: {
     position: 'relative',
-    marginRight: 15,
+    marginRight: 16,
   },
   avatar: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#3b82f6',
     justifyContent: 'center',
     alignItems: 'center',
-    overflow: 'hidden',
+    shadowColor: '#FF6B35',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
   },
   avatarImage: {
-    width: '100%',
-    height: '100%',
+    width: 80,
+    height: 80,
+    borderRadius: 40,
   },
   avatarText: {
-    fontSize: 24,
+    fontSize: 32,
     fontWeight: 'bold',
     color: '#ffffff',
   },
@@ -689,105 +665,95 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    borderRadius: 40,
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 40,
   },
   avatarLoadingText: {
-    fontSize: 20,
+    fontSize: 24,
     color: '#ffffff',
   },
   changeAvatarButton: {
     position: 'absolute',
-    bottom: 0,
-    right: 0,
-    backgroundColor: '#10b981',
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    bottom: -5,
+    right: -5,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#ffffff',
-  },
-  changeAvatarButtonDisabled: {
-    backgroundColor: '#9ca3af',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
   },
   changeAvatarText: {
-    fontSize: 12,
+    fontSize: 16,
     color: '#ffffff',
   },
   profileInfo: {
     flex: 1,
   },
   profileName: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: 'bold',
-    color: '#1f2937',
     marginBottom: 4,
   },
   profileUsername: {
-    fontSize: 14,
-    color: '#6b7280',
+    fontSize: 16,
     marginBottom: 4,
   },
   profileEmail: {
     fontSize: 14,
-    color: '#3b82f6',
   },
   bioContainer: {
-    paddingTop: 15,
+    paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
   },
   bioText: {
     fontSize: 14,
-    color: '#4b5563',
     lineHeight: 20,
   },
   statsCard: {
-    backgroundColor: '#ffffff',
-    marginHorizontal: 20,
-    marginBottom: 20,
-    borderRadius: 16,
     padding: 20,
-    shadowColor: '#000',
+    borderRadius: 16,
+    marginBottom: 20,
+    shadowColor: '#000000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
-    color: '#1f2937',
-    marginBottom: 15,
+    marginBottom: 16,
   },
   statsGrid: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    gap: 20,
   },
   statItem: {
+    flex: 1,
     alignItems: 'center',
   },
   statNumber: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#3b82f6',
+    marginTop: 8,
     marginBottom: 4,
   },
   statLabel: {
     fontSize: 12,
-    color: '#6b7280',
+    textAlign: 'center',
+    fontWeight: '500',
   },
-  formCard: {
-    backgroundColor: '#ffffff',
-    marginHorizontal: 20,
-    marginBottom: 20,
-    borderRadius: 16,
+  formSection: {
     padding: 20,
-    shadowColor: '#000',
+    borderRadius: 16,
+    marginBottom: 20,
+    shadowColor: '#000000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -796,100 +762,65 @@ const styles = StyleSheet.create({
   inputGroup: {
     marginBottom: 16,
   },
-  inputRow: {
-    flexDirection: 'row',
-    gap: 12,
-  },
   inputLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#374151',
     marginBottom: 8,
   },
-  input: {
+  textInput: {
     borderWidth: 1,
-    borderColor: '#d1d5db',
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 16,
-    color: '#1f2937',
-    backgroundColor: '#f9fafb',
   },
   textArea: {
-    height: 80,
+    height: 100,
     textAlignVertical: 'top',
   },
-  displayValue: {
-    backgroundColor: '#f3f4f6',
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-  },
-  displayText: {
-    fontSize: 16,
-    color: '#1f2937',
-  },
-  accountCard: {
-    backgroundColor: '#ffffff',
-    marginHorizontal: 20,
-    marginBottom: 20,
-    borderRadius: 16,
+  accountInfo: {
     padding: 20,
-    shadowColor: '#000',
+    borderRadius: 16,
+    marginBottom: 20,
+    shadowColor: '#000000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
   },
-  accountInfo: {
-    gap: 12,
-  },
-  infoRow: {
+  infoItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 8,
+    paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
   },
   infoLabel: {
     fontSize: 14,
-    color: '#6b7280',
   },
   infoValue: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1f2937',
   },
-  actionsCard: {
-    backgroundColor: '#ffffff',
-    marginHorizontal: 20,
-    marginBottom: 20,
-    borderRadius: 16,
+  actions: {
     padding: 20,
-    shadowColor: '#000',
+    borderRadius: 16,
+    marginBottom: 20,
+    shadowColor: '#000000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
   },
-  actionButtons: {
-    gap: 12,
-  },
   actionButton: {
-    backgroundColor: '#f3f4f6',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 16,
+    borderBottomWidth: 1,
   },
   actionButtonText: {
-    fontSize: 14,
-    color: '#374151',
+    fontSize: 16,
     fontWeight: '500',
+    marginLeft: 12,
   },
 }); 

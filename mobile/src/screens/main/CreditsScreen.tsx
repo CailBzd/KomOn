@@ -4,347 +4,440 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  SafeAreaView,
-  StatusBar,
   ScrollView,
+  Dimensions,
 } from 'react-native';
+import { useAuth } from '../../contexts/AuthContext';
+import { useTheme } from '../../contexts/ThemeContext';
+import ImprovedIcon from '../../components/ImprovedIcon';
+import SafeAreaWrapper from '../../components/SafeAreaWrapper';
+
+const { width } = Dimensions.get('window');
 
 export default function CreditsScreen() {
+  const { user } = useAuth();
+  const { colors } = useTheme();
+
   return (
-    <>
-      <StatusBar barStyle="dark-content" backgroundColor="#f7fafc" />
-      <SafeAreaView style={styles.safeArea}>
-        <ScrollView 
-          contentContainerStyle={styles.scrollContainer}
-          showsVerticalScrollIndicator={false}
-        >
-          {/* Header */}
-          <View style={styles.header}>
-            <Text style={styles.headerTitle}>Mes Crédits</Text>
-            <TouchableOpacity style={styles.buyButton}>
-              <Text style={styles.buyButtonText}>Acheter</Text>
+    <SafeAreaWrapper>
+      {/* Fixed Header */}
+      <View style={[styles.fixedHeader, { backgroundColor: colors.background, borderBottomColor: colors.border }]}>
+        <View style={styles.headerTop}>
+          <View style={styles.logoContainer}>
+            <View style={[styles.logoBox, { backgroundColor: colors.primary }]}>
+              <Text style={styles.logoText}>K</Text>
+            </View>
+            <Text style={[styles.logoText, { color: colors.primary }]}>KomOn!</Text>
+          </View>
+          <TouchableOpacity style={[styles.buyButton, { backgroundColor: colors.primary }]}>
+            <Text style={styles.buyButtonText}>Acheter!</Text>
+          </TouchableOpacity>
+        </View>
+        
+        {/* User Info */}
+        <View style={styles.userInfo}>
+          <Text style={[styles.welcomeText, { color: colors.text }]}>Bonjour, {user?.firstName || 'Sportif'}!</Text>
+          <Text style={[styles.subtitleText, { color: colors.textSecondary }]}>Gère tes crédits et crée des événements!</Text>
+        </View>
+
+        {/* Credits Balance */}
+        <View style={styles.balanceSection}>
+          <View style={[styles.balanceCard, { backgroundColor: colors.primary }]}>
+            <Text style={styles.balanceLabel}>Solde actuel</Text>
+            <Text style={styles.balanceAmount}>8 crédits</Text>
+            <Text style={styles.balanceValue}>≈ 8,00 €</Text>
+          </View>
+        </View>
+
+        {/* Quick Actions */}
+        <View style={styles.quickActionsSection}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Actions rapides</Text>
+          <View style={styles.quickActionsGrid}>
+            <TouchableOpacity style={[styles.quickActionCard, { backgroundColor: colors.surface }]}>
+              <ImprovedIcon type="create" size="small" />
+              <Text style={[styles.quickActionText, { color: colors.text }]}>Créer</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={[styles.quickActionCard, { backgroundColor: colors.surface }]}>
+              <ImprovedIcon type="participation" size="small" />
+              <Text style={[styles.quickActionText, { color: colors.text }]}>Participer</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={[styles.quickActionCard, { backgroundColor: colors.surface }]}>
+              <ImprovedIcon type="purchase" size="small" />
+              <Text style={[styles.quickActionText, { color: colors.text }]}>Acheter</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={[styles.quickActionCard, { backgroundColor: colors.surface }]}>
+              <ImprovedIcon type="credit" size="small" />
+              <Text style={[styles.quickActionText, { color: colors.text }]}>Historique</Text>
             </TouchableOpacity>
           </View>
+        </View>
 
-          {/* Credits Balance */}
-          <View style={styles.balanceSection}>
-            <View style={styles.balanceCard}>
-              <Text style={styles.balanceLabel}>Solde actuel</Text>
-              <Text style={styles.balanceAmount}>8 crédits</Text>
-              <Text style={styles.balanceValue}>≈ 8,00 €</Text>
-            </View>
-          </View>
+        {/* Filters */}
+        <View style={styles.filtersSection}>
+          <TouchableOpacity style={[styles.filterButton, styles.filterButtonActive, { backgroundColor: colors.primary, borderColor: colors.primary }]}>
+            <Text style={styles.filterButtonTextActive}>Tout</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.filterButton, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <Text style={[styles.filterButtonText, { color: colors.textSecondary }]}>Achats</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.filterButton, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <Text style={[styles.filterButtonText, { color: colors.textSecondary }]}>Gains</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.filterButton, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <Text style={[styles.filterButtonText, { color: colors.textSecondary }]}>Utilisations</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
 
-          {/* How it works */}
-          <View style={styles.howItWorksSection}>
-            <Text style={styles.sectionTitle}>Comment ça marche ?</Text>
-            <View style={styles.howItWorksCard}>
-              <View style={styles.howItWorksItem}>
-                <View style={styles.howItWorksIcon}>
-                  <Text style={styles.howItWorksIconText}>🎯</Text>
-                </View>
-                <View style={styles.howItWorksContent}>
-                  <Text style={styles.howItWorksTitle}>Créer un événement</Text>
-                  <Text style={styles.howItWorksDesc}>1 crédit = 1 événement créé</Text>
-                </View>
-              </View>
-              
-              <View style={styles.howItWorksItem}>
-                <View style={styles.howItWorksIcon}>
-                  <Text style={styles.howItWorksIconText}>👥</Text>
-                </View>
-                <View style={styles.howItWorksContent}>
-                  <Text style={styles.howItWorksTitle}>Participer</Text>
-                  <Text style={styles.howItWorksDesc}>5 participations = 1 crédit gagné</Text>
-                </View>
-              </View>
-              
-              <View style={styles.howItWorksItem}>
-                <View style={styles.howItWorksIcon}>
-                  <Text style={styles.howItWorksIconText}>💎</Text>
-                </View>
-                <View style={styles.howItWorksContent}>
-                  <Text style={styles.howItWorksTitle}>Utiliser</Text>
-                  <Text style={styles.howItWorksDesc}>Créez de nouveaux événements</Text>
-                </View>
+      {/* Scrollable Content */}
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContainer}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* How it works */}
+        <View style={styles.howItWorksSection}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Comment ça marche?</Text>
+          <View style={[styles.howItWorksCard, { backgroundColor: colors.surface }]}>
+            <View style={styles.howItWorksItem}>
+              <ImprovedIcon type="create" size="medium" />
+              <View style={styles.howItWorksContent}>
+                <Text style={[styles.howItWorksTitle, { color: colors.text }]}>Créer un événement!</Text>
+                <Text style={[styles.howItWorksDesc, { color: colors.textSecondary }]}>1 crédit = 1 événement créé</Text>
               </View>
             </View>
-          </View>
-
-          {/* Recent Activity */}
-          <View style={styles.activitySection}>
-            <Text style={styles.sectionTitle}>Activité récente</Text>
-            <View style={styles.activityList}>
-              <View style={styles.activityItem}>
-                <View style={styles.activityIcon}>
-                  <Text style={styles.activityIconText}>🎯</Text>
-                </View>
-                <View style={styles.activityContent}>
-                  <Text style={styles.activityTitle}>Événement créé</Text>
-                  <Text style={styles.activityDesc}>Match de foot amical</Text>
-                  <Text style={styles.activityDate}>Aujourd'hui, 14h30</Text>
-                </View>
-                <Text style={styles.activityAmount}>-1 crédit</Text>
+            
+            <View style={styles.howItWorksItem}>
+              <ImprovedIcon type="participation" size="medium" />
+              <View style={styles.howItWorksContent}>
+                <Text style={[styles.howItWorksTitle, { color: colors.text }]}>Participer!</Text>
+                <Text style={[styles.howItWorksDesc, { color: colors.textSecondary }]}>5 participations = 1 crédit gagné</Text>
               </View>
-              
-              <View style={styles.activityItem}>
-                <View style={styles.activityIcon}>
-                  <Text style={styles.activityIconText}>👥</Text>
-                </View>
-                <View style={styles.activityContent}>
-                  <Text style={styles.activityTitle}>Participation</Text>
-                  <Text style={styles.activityDesc}>Course à pied matinale</Text>
-                  <Text style={styles.activityDate}>Hier, 7h00</Text>
-                </View>
-                <Text style={styles.activityAmount}>+0.2 crédit</Text>
-              </View>
-              
-              <View style={styles.activityItem}>
-                <View style={styles.activityIcon}>
-                  <Text style={styles.activityIconText}>👥</Text>
-                </View>
-                <View style={styles.activityContent}>
-                  <Text style={styles.activityTitle}>Participation</Text>
-                  <Text style={styles.activityDesc}>Basket en salle</Text>
-                  <Text style={styles.activityDate}>Lundi, 20h00</Text>
-                </View>
-                <Text style={styles.activityAmount}>+0.2 crédit</Text>
-              </View>
-              
-              <View style={styles.activityItem}>
-                <View style={styles.activityIcon}>
-                  <Text style={styles.activityIconText}>💳</Text>
-                </View>
-                <View style={styles.activityContent}>
-                  <Text style={styles.activityTitle}>Achat</Text>
-                  <Text style={styles.activityDesc}>Pack de 5 crédits</Text>
-                  <Text style={styles.activityDate}>Lundi, 15h45</Text>
-                </View>
-                <Text style={styles.activityAmount}>+5 crédits</Text>
+            </View>
+            
+            <View style={styles.howItWorksItem}>
+              <ImprovedIcon type="credit" size="medium" />
+              <View style={styles.howItWorksContent}>
+                <Text style={[styles.howItWorksTitle, { color: colors.text }]}>Utiliser!</Text>
+                <Text style={[styles.howItWorksDesc, { color: colors.textSecondary }]}>Créez de nouveaux événements</Text>
               </View>
             </View>
           </View>
+        </View>
 
-          {/* Buy Credits */}
-          <View style={styles.buySection}>
-            <Text style={styles.sectionTitle}>Acheter des crédits</Text>
-            <View style={styles.packagesGrid}>
-              <TouchableOpacity style={styles.packageCard}>
-                <Text style={styles.packageCredits}>5 crédits</Text>
-                <Text style={styles.packagePrice}>5,00 €</Text>
-                <Text style={styles.packageValue}>1,00 €/crédit</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity style={[styles.packageCard, styles.packageCardPopular]}>
-                <View style={styles.popularBadge}>
-                  <Text style={styles.popularBadgeText}>Populaire</Text>
-                </View>
-                <Text style={styles.packageCredits}>10 crédits</Text>
-                <Text style={styles.packagePrice}>9,00 €</Text>
-                <Text style={styles.packageValue}>0,90 €/crédit</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity style={styles.packageCard}>
-                <Text style={styles.packageCredits}>20 crédits</Text>
-                <Text style={styles.packagePrice}>16,00 €</Text>
-                <Text style={styles.packageValue}>0,80 €/crédit</Text>
-              </TouchableOpacity>
+        {/* Recent Activity */}
+        <View style={styles.activitySection}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Activité récente</Text>
+          <View style={[styles.activityList, { backgroundColor: colors.surface }]}>
+            <View style={[styles.activityItem, { borderBottomColor: colors.borderLight }]}>
+              <ImprovedIcon type="create" size="medium" />
+              <View style={styles.activityContent}>
+                <Text style={[styles.activityTitle, { color: colors.text }]}>Événement créé!</Text>
+                <Text style={[styles.activityDesc, { color: colors.textSecondary }]}>Match de foot amical</Text>
+                <Text style={[styles.activityDate, { color: colors.textTertiary }]}>Aujourd'hui, 14h30</Text>
+              </View>
+              <Text style={[styles.activityAmount, { color: colors.primary }]}>-1 crédit</Text>
+            </View>
+            
+            <View style={[styles.activityItem, { borderBottomColor: colors.borderLight }]}>
+              <ImprovedIcon type="participation" size="medium" />
+              <View style={styles.activityContent}>
+                <Text style={[styles.activityTitle, { color: colors.text }]}>Participation!</Text>
+                <Text style={[styles.activityDesc, { color: colors.textSecondary }]}>Course à pied matinale</Text>
+                <Text style={[styles.activityDate, { color: colors.textTertiary }]}>Hier, 7h00</Text>
+              </View>
+              <Text style={[styles.activityAmount, { color: colors.primary }]}>+0.2 crédit</Text>
+            </View>
+            
+            <View style={[styles.activityItem, { borderBottomColor: colors.borderLight }]}>
+              <ImprovedIcon type="participation" size="medium" />
+              <View style={styles.activityContent}>
+                <Text style={[styles.activityTitle, { color: colors.text }]}>Participation!</Text>
+                <Text style={[styles.activityDesc, { color: colors.textSecondary }]}>Basket en salle</Text>
+                <Text style={[styles.activityDate, { color: colors.textTertiary }]}>Lundi, 20h00</Text>
+              </View>
+              <Text style={[styles.activityAmount, { color: colors.primary }]}>+0.2 crédit</Text>
+            </View>
+            
+            <View style={[styles.activityItem, { borderBottomColor: colors.borderLight }]}>
+              <ImprovedIcon type="purchase" size="medium" />
+              <View style={styles.activityContent}>
+                <Text style={[styles.activityTitle, { color: colors.text }]}>Achat!</Text>
+                <Text style={[styles.activityDesc, { color: colors.textSecondary }]}>Pack de 5 crédits</Text>
+                <Text style={[styles.activityDate, { color: colors.textTertiary }]}>Lundi, 15h45</Text>
+              </View>
+              <Text style={[styles.activityAmount, { color: colors.primary }]}>+5 crédits</Text>
             </View>
           </View>
-        </ScrollView>
-      </SafeAreaView>
-    </>
+        </View>
+
+        {/* Buy Credits */}
+        <View style={styles.buySection}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Acheter des crédits!</Text>
+          <View style={styles.packagesGrid}>
+            <TouchableOpacity style={[styles.packageCard, { backgroundColor: colors.surface }]}>
+              <Text style={[styles.packageCredits, { color: colors.text }]}>5 crédits</Text>
+              <Text style={[styles.packagePrice, { color: colors.primary }]}>5,00 €</Text>
+              <Text style={[styles.packageValue, { color: colors.textSecondary }]}>1,00 €/crédit</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={[styles.packageCard, styles.packageCardPopular, { backgroundColor: colors.surface, borderColor: colors.primary }]}>
+              <View style={[styles.popularBadge, { backgroundColor: colors.primary }]}>
+                <Text style={styles.popularBadgeText}>Populaire!</Text>
+              </View>
+              <Text style={[styles.packageCredits, { color: colors.text }]}>10 crédits</Text>
+              <Text style={[styles.packagePrice, { color: colors.primary }]}>9,00 €</Text>
+              <Text style={[styles.packageValue, { color: colors.textSecondary }]}>0,90 €/crédit</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={[styles.packageCard, { backgroundColor: colors.surface }]}>
+              <Text style={[styles.packageCredits, { color: colors.text }]}>20 crédits</Text>
+              <Text style={[styles.packagePrice, { color: colors.primary }]}>16,00 €</Text>
+              <Text style={[styles.packageValue, { color: colors.textSecondary }]}>0,80 €/crédit</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </ScrollView>
+    </SafeAreaWrapper>
   );
 }
 
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#f7fafc',
   },
-  scrollContainer: {
+  fixedHeader: {
     paddingHorizontal: 20,
     paddingTop: 20,
-    paddingBottom: 40,
+    paddingBottom: 20,
+    borderBottomWidth: 1,
   },
-  header: {
+  headerTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 16,
   },
-  headerTitle: {
-    fontSize: 24,
+  logoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  logoBox: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#FF6B35',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  logoText: {
+    fontSize: 18,
     fontWeight: 'bold',
-    color: '#2d3748',
   },
   buyButton: {
-    backgroundColor: '#319795',
     paddingHorizontal: 16,
     paddingVertical: 8,
-    borderRadius: 8,
+    borderRadius: 20,
+    shadowColor: '#FF6B35',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
   },
   buyButtonText: {
     color: '#ffffff',
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: 'bold',
+  },
+  userInfo: {
+    marginBottom: 20,
+  },
+  welcomeText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  subtitleText: {
+    fontSize: 14,
   },
   balanceSection: {
-    marginBottom: 32,
+    marginBottom: 20,
   },
   balanceCard: {
-    backgroundColor: '#319795',
     padding: 24,
     borderRadius: 16,
     alignItems: 'center',
-    shadowColor: '#319795',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
+    shadowColor: '#FF6B35',
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 6,
   },
   balanceLabel: {
-    fontSize: 16,
-    color: '#e6fffa',
+    fontSize: 14,
+    color: '#ffffff',
+    opacity: 0.9,
     marginBottom: 8,
   },
   balanceAmount: {
-    fontSize: 36,
+    fontSize: 32,
     fontWeight: 'bold',
     color: '#ffffff',
     marginBottom: 4,
   },
   balanceValue: {
-    fontSize: 14,
-    color: '#e6fffa',
+    fontSize: 16,
+    color: '#ffffff',
+    opacity: 0.9,
   },
-  howItWorksSection: {
-    marginBottom: 32,
+  quickActionsSection: {
+    marginBottom: 20,
   },
   sectionTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
-    color: '#2d3748',
-    marginBottom: 16,
+    marginBottom: 12,
   },
-  howItWorksCard: {
-    backgroundColor: '#ffffff',
-    padding: 20,
+  quickActionsGrid: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  quickActionCard: {
+    flex: 1,
+    padding: 16,
     borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    alignItems: 'center',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
   },
+  quickActionText: {
+    fontSize: 12,
+    fontWeight: '600',
+    marginTop: 8,
+    textAlign: 'center',
+  },
+  filtersSection: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 20,
+  },
+  filterButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+  },
+  filterButtonActive: {
+    borderColor: '#FF6B35',
+  },
+  filterButtonText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  filterButtonTextActive: {
+    fontSize: 14,
+    color: '#ffffff',
+    fontWeight: 'bold',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContainer: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 120, // Augmenté pour éviter la navigation
+  },
+  howItWorksSection: {
+    marginBottom: 32,
+  },
+  howItWorksCard: {
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
   howItWorksItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
-  },
-  howItWorksIcon: {
-    width: 40,
-    height: 40,
-    backgroundColor: '#f7fafc',
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  howItWorksIconText: {
-    fontSize: 20,
+    marginBottom: 20,
   },
   howItWorksContent: {
     flex: 1,
+    marginLeft: 16,
   },
   howItWorksTitle: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#2d3748',
-    marginBottom: 2,
+    fontWeight: 'bold',
+    marginBottom: 4,
   },
   howItWorksDesc: {
     fontSize: 14,
-    color: '#718096',
   },
   activitySection: {
     marginBottom: 32,
   },
   activityList: {
-    gap: 12,
+    borderRadius: 16,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
   },
   activityItem: {
-    backgroundColor: '#ffffff',
-    padding: 16,
-    borderRadius: 12,
     flexDirection: 'row',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  activityIcon: {
-    width: 40,
-    height: 40,
-    backgroundColor: '#f7fafc',
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  activityIconText: {
-    fontSize: 18,
+    padding: 16,
+    borderBottomWidth: 1,
   },
   activityContent: {
     flex: 1,
+    marginLeft: 12,
   },
   activityTitle: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#2d3748',
+    fontWeight: 'bold',
     marginBottom: 2,
   },
   activityDesc: {
     fontSize: 14,
-    color: '#718096',
     marginBottom: 2,
   },
   activityDate: {
     fontSize: 12,
-    color: '#a0aec0',
   },
   activityAmount: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#319795',
+    fontWeight: 'bold',
   },
   buySection: {
-    marginBottom: 20,
+    marginBottom: 32,
   },
   packagesGrid: {
+    flexDirection: 'row',
     gap: 12,
   },
   packageCard: {
-    backgroundColor: '#ffffff',
-    padding: 20,
+    flex: 1,
+    padding: 16,
     borderRadius: 12,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
@@ -352,35 +445,30 @@ const styles = StyleSheet.create({
   },
   packageCardPopular: {
     borderWidth: 2,
-    borderColor: '#319795',
   },
   popularBadge: {
     position: 'absolute',
     top: -8,
-    backgroundColor: '#319795',
-    paddingHorizontal: 12,
+    paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
   },
   popularBadgeText: {
+    fontSize: 10,
+    fontWeight: 'bold',
     color: '#ffffff',
-    fontSize: 12,
-    fontWeight: '600',
   },
   packageCredits: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
-    color: '#2d3748',
     marginBottom: 4,
   },
   packagePrice: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
-    color: '#319795',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   packageValue: {
-    fontSize: 14,
-    color: '#718096',
+    fontSize: 12,
   },
 }); 

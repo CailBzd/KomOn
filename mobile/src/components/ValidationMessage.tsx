@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
+import KomOnIcon from './KomOnIcons';
 
 interface ValidationMessageProps {
   message: string;
@@ -49,16 +50,16 @@ export default function ValidationMessage({ message, type, visible }: Validation
     }
   };
 
-  const getIcon = () => {
+  const getIconName = () => {
     switch (type) {
       case 'error':
-        return '❌';
+        return 'error';
       case 'warning':
-        return '⚠️';
+        return 'warning';
       case 'success':
-        return '✅';
+        return 'success';
       default:
-        return '❌';
+        return 'error';
     }
   };
 
@@ -72,7 +73,7 @@ export default function ValidationMessage({ message, type, visible }: Validation
         },
       ]}
     >
-      <Text style={styles.icon}>{getIcon()}</Text>
+      <KomOnIcon name={getIconName()} size={16} />
       <Text style={[styles.message, { color: getTextColor() }]}>
         {message}
       </Text>

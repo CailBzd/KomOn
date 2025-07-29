@@ -9,6 +9,7 @@ import {
   ScrollView,
   Dimensions,
 } from 'react-native';
+import KomOnIcon from '../../components/KomOnIcons';
 
 const { width, height } = Dimensions.get('window');
 
@@ -75,23 +76,23 @@ export default function PricingScreen({ navigation }: PricingScreenProps) {
 
             <View style={styles.featuresContainer}>
               <View style={styles.featureItem}>
-                <Text style={styles.featureIcon}>✅</Text>
+                <KomOnIcon name="checkCircle" size={20} />
                 <Text style={styles.featureText}>1 crédit = 1 événement créé</Text>
               </View>
               <View style={styles.featureItem}>
-                <Text style={styles.featureIcon}>✅</Text>
+                <KomOnIcon name="checkCircle" size={20} />
                 <Text style={styles.featureText}>S'inscrire aux événements (10/mois)</Text>
               </View>
               <View style={styles.featureItem}>
-                <Text style={styles.featureIcon}>✅</Text>
+                <KomOnIcon name="checkCircle" size={20} />
                 <Text style={styles.featureText}>Profil basique</Text>
               </View>
               <View style={styles.featureItem}>
-                <Text style={styles.featureIcon}>✅</Text>
+                <KomOnIcon name="checkCircle" size={20} />
                 <Text style={styles.featureText}>Accès communautaire</Text>
               </View>
               <View style={styles.featureItem}>
-                <Text style={styles.featureIcon}>✅</Text>
+                <KomOnIcon name="checkCircle" size={20} />
                 <Text style={styles.featureText}>Notifications d'événements</Text>
               </View>
             </View>
@@ -99,19 +100,19 @@ export default function PricingScreen({ navigation }: PricingScreenProps) {
             <View style={styles.limitationsContainer}>
               <Text style={styles.limitationsTitle}>Limitations :</Text>
               <View style={styles.limitationItem}>
-                <Text style={styles.limitationIcon}>⚠️</Text>
+                <KomOnIcon name="warning" size={20} />
                 <Text style={styles.limitationText}>Max 30 participants/événement</Text>
               </View>
               <View style={styles.limitationItem}>
-                <Text style={styles.limitationIcon}>⚠️</Text>
+                <KomOnIcon name="warning" size={20} />
                 <Text style={styles.limitationText}>Max 10 participations/mois</Text>
               </View>
               <View style={styles.limitationItem}>
-                <Text style={styles.limitationIcon}>⚠️</Text>
+                <KomOnIcon name="warning" size={20} />
                 <Text style={styles.limitationText}>Pas de statistiques avancées</Text>
               </View>
               <View style={styles.limitationItem}>
-                <Text style={styles.limitationIcon}>⚠️</Text>
+                <KomOnIcon name="warning" size={20} />
                 <Text style={styles.limitationText}>Support communautaire uniquement</Text>
               </View>
             </View>

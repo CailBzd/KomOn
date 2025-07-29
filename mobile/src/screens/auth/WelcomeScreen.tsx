@@ -38,8 +38,12 @@ export default function WelcomeScreen({ navigation }: WelcomeScreenProps) {
         {/* Logo et titre */}
         <View style={styles.header}>
           <View style={styles.logoContainer}>
-            <Text style={styles.logo}>KomOn</Text>
-            <Text style={styles.tagline}>Connectez-vous, bougez ensemble</Text>
+            <View style={styles.logoBox}>
+              <Text style={styles.logoText}>K</Text>
+            </View>
+            <Text style={styles.logo}>KomOn!</Text>
+            <Text style={styles.tagline}>Come On, Let's Move Together!</Text>
+            <Text style={styles.subtitle}>Rejoins la communauté énergique de sportifs!</Text>
           </View>
         </View>
 
@@ -47,7 +51,8 @@ export default function WelcomeScreen({ navigation }: WelcomeScreenProps) {
         <View style={styles.illustrationContainer}>
           <View style={styles.illustration}>
             <Text style={styles.illustrationIcon}>🏃‍♂️</Text>
-            <Text style={styles.illustrationText}>Prêt à bouger ?</Text>
+            <Text style={styles.illustrationText}>Prêt à bouger?</Text>
+            <Text style={styles.illustrationSubtext}>Crée des événements, participe, reste motivé!</Text>
           </View>
         </View>
 
@@ -59,7 +64,7 @@ export default function WelcomeScreen({ navigation }: WelcomeScreenProps) {
             activeOpacity={0.8}
           >
             <View style={styles.primaryButtonGradient}>
-              <Text style={styles.primaryButtonText}>🚀 Commencer l'aventure</Text>
+              <Text style={styles.primaryButtonText}>🚀 Commencer l'aventure!</Text>
             </View>
           </TouchableOpacity>
 
@@ -68,7 +73,7 @@ export default function WelcomeScreen({ navigation }: WelcomeScreenProps) {
             onPress={handleAlreadyHaveAccount}
             activeOpacity={0.8}
           >
-            <Text style={styles.secondaryButtonText}>👤 J'ai déjà un compte</Text>
+            <Text style={styles.secondaryButtonText}>👤 J'ai déjà un compte!</Text>
           </TouchableOpacity>
         </View>
 
@@ -85,8 +90,8 @@ export default function WelcomeScreen({ navigation }: WelcomeScreenProps) {
             onPress={handleDiscoverMore}
             activeOpacity={0.8}
           >
-            <Text style={styles.discoverButtonText}>🌐 En découvrir davantage</Text>
-            <Text style={styles.discoverButtonSubtext}>Visiter le site web</Text>
+            <Text style={styles.discoverButtonText}>🌐 En découvrir davantage!</Text>
+            <Text style={styles.discoverButtonSubtext}>Visiter le site web KomOn!</Text>
           </TouchableOpacity>
         </View>
 
@@ -121,20 +126,46 @@ const styles = StyleSheet.create({
   logoContainer: {
     alignItems: 'center',
   },
+  logoBox: {
+    width: 80,
+    height: 80,
+    backgroundColor: '#FF6B35',
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+    shadowColor: '#FF6B35',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4,
+    shadowRadius: 16,
+    elevation: 12,
+  },
+  logoText: {
+    fontSize: 40,
+    fontWeight: 'bold',
+    color: '#ffffff',
+  },
   logo: {
     fontSize: 48,
     fontWeight: 'bold',
-    color: '#ffffff',
+    color: '#FF6B35',
     marginBottom: 8,
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowColor: 'rgba(255, 107, 53, 0.3)',
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 4,
   },
   tagline: {
     fontSize: 18,
+    color: '#ffffff',
+    textAlign: 'center',
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 16,
     color: '#e2e8f0',
     textAlign: 'center',
-    fontWeight: '300',
+    fontWeight: '400',
   },
   illustrationContainer: {
     flex: 1,
@@ -150,9 +181,17 @@ const styles = StyleSheet.create({
   },
   illustrationText: {
     fontSize: 24,
-    color: '#ffffff',
-    fontWeight: '600',
+    color: '#FF6B35',
+    fontWeight: 'bold',
     textAlign: 'center',
+    marginBottom: 8,
+  },
+  illustrationSubtext: {
+    fontSize: 16,
+    color: '#e2e8f0',
+    textAlign: 'center',
+    fontWeight: '400',
+    lineHeight: 22,
   },
   buttonContainer: {
     paddingBottom: 32,
@@ -160,7 +199,7 @@ const styles = StyleSheet.create({
   primaryButton: {
     marginBottom: 16,
     borderRadius: 16,
-    shadowColor: '#000',
+    shadowColor: '#FF6B35',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -171,7 +210,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
     borderRadius: 16,
     alignItems: 'center',
-    backgroundColor: '#319795',
+    backgroundColor: '#FF6B35',
   },
   primaryButtonText: {
     fontSize: 18,
@@ -179,18 +218,18 @@ const styles = StyleSheet.create({
     color: '#ffffff',
   },
   secondaryButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'rgba(255, 107, 53, 0.1)',
     paddingVertical: 18,
     paddingHorizontal: 32,
     borderRadius: 16,
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderWidth: 2,
+    borderColor: '#FF6B35',
   },
   secondaryButtonText: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#ffffff',
+    fontWeight: 'bold',
+    color: '#FF6B35',
   },
   discoverSection: {
     paddingBottom: 24,
@@ -203,31 +242,32 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: 'rgba(255, 107, 53, 0.3)',
   },
   dividerText: {
-    color: 'rgba(255, 255, 255, 0.6)',
+    color: 'rgba(255, 107, 53, 0.8)',
     paddingHorizontal: 16,
     fontSize: 14,
+    fontWeight: '600',
   },
   discoverButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: 'rgba(255, 107, 53, 0.1)',
     paddingVertical: 16,
     paddingHorizontal: 24,
     borderRadius: 12,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: 'rgba(255, 107, 53, 0.3)',
   },
   discoverButtonText: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#ffffff',
+    fontWeight: 'bold',
+    color: '#FF6B35',
     marginBottom: 4,
   },
   discoverButtonSubtext: {
     fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.6)',
+    color: 'rgba(255, 107, 53, 0.8)',
   },
   footer: {
     paddingBottom: 24,
@@ -239,7 +279,8 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   linkText: {
-    color: '#319795',
+    color: '#FF6B35',
     textDecorationLine: 'underline',
+    fontWeight: '600',
   },
 }); 

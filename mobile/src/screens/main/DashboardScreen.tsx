@@ -4,207 +4,306 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  SafeAreaView,
-  StatusBar,
   ScrollView,
   Dimensions,
 } from 'react-native';
 import { useAuth } from '../../contexts/AuthContext';
+import { useTheme } from '../../contexts/ThemeContext';
+import ImprovedIcon from '../../components/ImprovedIcon';
+import SafeScreen from '../../components/SafeScreen';
 
 const { width } = Dimensions.get('window');
 
 export default function DashboardScreen() {
   const { user } = useAuth();
+  const { colors } = useTheme();
 
   return (
-    <>
-      <StatusBar barStyle="dark-content" backgroundColor="#f7fafc" />
-      <SafeAreaView style={[styles.safeArea, { paddingTop: 10 }]}>
-        <ScrollView 
-          contentContainerStyle={[styles.scrollContainer, { paddingTop: 15 }]}
-          showsVerticalScrollIndicator={false}
-        >
-          {/* Header */}
-          <View style={styles.header}>
-            <View style={styles.headerLeft}>
-              <View style={styles.logoBox}>
-                <Text style={styles.logoText}>K</Text>
-              </View>
-              <View style={styles.headerText}>
-                <Text style={styles.welcomeText}>Bonjour,</Text>
-                <Text style={styles.userName}>{user?.firstName || 'Utilisateur'}</Text>
+    <SafeScreen>
+      {/* Fixed Header */}
+      <View style={[styles.fixedHeader, { backgroundColor: colors.background, borderBottomColor: colors.border }]}>
+        <View style={styles.headerTop}>
+          <View style={styles.logoContainer}>
+            <View style={[styles.logoBox, { backgroundColor: colors.primary }]}>
+              <Text style={styles.logoText}>K</Text>
+            </View>
+            <Text style={[styles.logoText, { color: colors.primary }]}>KomOn!</Text>
+          </View>
+          <TouchableOpacity style={[styles.notificationButton, { backgroundColor: colors.primary }]}>
+            <Text style={styles.notificationButtonText}>🔔</Text>
+          </TouchableOpacity>
+        </View>
+        
+        {/* User Info */}
+        <View style={styles.userInfo}>
+          <Text style={[styles.welcomeText, { color: colors.text }]}>Bonjour, {user?.firstName || 'Sportif'}!</Text>
+          <Text style={[styles.subtitleText, { color: colors.textSecondary }]}>Prêt pour une nouvelle activité?</Text>
+        </View>
+      </View>
+
+      {/* Scrollable Content */}
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContainer}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Quick Actions */}
+        <View style={styles.quickActionsSection}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Actions rapides!</Text>
+          <View style={styles.quickActionsGrid}>
+            <TouchableOpacity style={[styles.quickActionCard, { backgroundColor: colors.surface }]}>
+              <ImprovedIcon type="create" size="medium" />
+              <Text style={[styles.quickActionTitle, { color: colors.text }]}>Créer un événement!</Text>
+              <Text style={[styles.quickActionDesc, { color: colors.textSecondary }]}>Organise une activité</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={[styles.quickActionCard, { backgroundColor: colors.surface }]}>
+              <ImprovedIcon type="search" size="medium" />
+              <Text style={[styles.quickActionTitle, { color: colors.text }]}>Rechercher!</Text>
+              <Text style={[styles.quickActionDesc, { color: colors.textSecondary }]}>Trouve des événements</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={[styles.quickActionCard, { backgroundColor: colors.surface }]}>
+              <ImprovedIcon type="community" size="medium" />
+              <Text style={[styles.quickActionTitle, { color: colors.text }]}>Communauté!</Text>
+              <Text style={[styles.quickActionDesc, { color: colors.textSecondary }]}>Rejoins des groupes</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={[styles.quickActionCard, { backgroundColor: colors.surface }]}>
+              <ImprovedIcon type="credit" size="medium" />
+              <Text style={[styles.quickActionTitle, { color: colors.text }]}>Mes crédits!</Text>
+              <Text style={[styles.quickActionDesc, { color: colors.textSecondary }]}>Gère ton solde</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Recent Events */}
+        <View style={styles.recentEventsSection}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Événements récents!</Text>
+          <View style={[styles.eventCard, { backgroundColor: colors.surface }]}>
+            <View style={styles.eventHeader}>
+              <ImprovedIcon type="event" size="medium" />
+              <View style={styles.eventInfo}>
+                <Text style={[styles.eventTitle, { color: colors.text }]}>Match de foot amical</Text>
+                <Text style={[styles.eventLocation, { color: colors.textSecondary }]}>📍 Stade municipal</Text>
+                <Text style={[styles.eventTime, { color: colors.textTertiary }]}>⏰ Aujourd'hui, 15h00</Text>
               </View>
             </View>
-
-          </View>
-
-          {/* Stats Cards */}
-          <View style={styles.statsSection}>
-            <Text style={styles.sectionTitle}>Vos statistiques</Text>
-            <View style={styles.statsGrid}>
-              <View style={styles.statCard}>
-                <Text style={styles.statNumber}>12</Text>
-                <Text style={styles.statLabel}>Événements créés</Text>
-              </View>
-              <View style={styles.statCard}>
-                <Text style={styles.statNumber}>45</Text>
-                <Text style={styles.statLabel}>Participations</Text>
-              </View>
-              <View style={styles.statCard}>
-                <Text style={styles.statNumber}>8</Text>
-                <Text style={styles.statLabel}>Crédits gagnés</Text>
-              </View>
+            <View style={styles.eventStats}>
+              <Text style={[styles.eventStat, { color: colors.primary }]}>👥 8 participants</Text>
+              <Text style={[styles.eventStat, { color: colors.primary }]}>💎 1 crédit</Text>
             </View>
           </View>
-
-          {/* Quick Actions */}
-          <View style={styles.actionsSection}>
-            <Text style={styles.sectionTitle}>Actions rapides</Text>
-            <View style={styles.actionsGrid}>
-              <TouchableOpacity style={styles.actionCard}>
-                <View style={styles.actionIcon}>
-                  <Text style={styles.actionIconText}>🎯</Text>
-                </View>
-                <Text style={styles.actionTitle}>Créer un événement</Text>
-                <Text style={styles.actionDesc}>Organisez votre activité</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity style={styles.actionCard}>
-                <View style={styles.actionIcon}>
-                  <Text style={styles.actionIconText}>🔍</Text>
-                </View>
-                <Text style={styles.actionTitle}>Rechercher</Text>
-                <Text style={styles.actionDesc}>Trouvez des événements</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity style={styles.actionCard}>
-                <View style={styles.actionIcon}>
-                  <Text style={styles.actionIconText}>👥</Text>
-                </View>
-                <Text style={styles.actionTitle}>Communauté</Text>
-                <Text style={styles.actionDesc}>Rejoignez des groupes</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity style={styles.actionCard}>
-                <View style={styles.actionIcon}>
-                  <Text style={styles.actionIconText}>💎</Text>
-                </View>
-                <Text style={styles.actionTitle}>Mes crédits</Text>
-                <Text style={styles.actionDesc}>Gérez vos crédits</Text>
-              </TouchableOpacity>
+          
+          <View style={[styles.eventCard, { backgroundColor: colors.surface }]}>
+            <View style={styles.eventHeader}>
+              <ImprovedIcon type="event" size="medium" />
+              <View style={styles.eventInfo}>
+                <Text style={[styles.eventTitle, { color: colors.text }]}>Course à pied matinale</Text>
+                <Text style={[styles.eventLocation, { color: colors.textSecondary }]}>📍 Parc central</Text>
+                <Text style={[styles.eventTime, { color: colors.textTertiary }]}>⏰ Demain, 7h00</Text>
+              </View>
+            </View>
+            <View style={styles.eventStats}>
+              <Text style={[styles.eventStat, { color: colors.primary }]}>👥 12 participants</Text>
+              <Text style={[styles.eventStat, { color: colors.primary }]}>💎 1 crédit</Text>
             </View>
           </View>
+        </View>
 
-          {/* Recent Events */}
-          <View style={styles.eventsSection}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Événements récents</Text>
-              <TouchableOpacity>
-                <Text style={styles.seeAllText}>Voir tout</Text>
-              </TouchableOpacity>
+        {/* Stats Overview */}
+        <View style={styles.statsSection}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Vue d'ensemble!</Text>
+          <View style={styles.statsGrid}>
+            <View style={[styles.statCard, { backgroundColor: colors.surface }]}>
+              <ImprovedIcon type="event" size="large" />
+              <Text style={[styles.statNumber, { color: colors.primary }]}>12</Text>
+              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Événements créés</Text>
             </View>
             
-            <View style={styles.eventsList}>
-              <View style={styles.eventCard}>
-                <View style={styles.eventHeader}>
-                  <Text style={styles.eventTitle}>Match de foot amical</Text>
-                  <Text style={styles.eventDate}>Aujourd'hui, 18h</Text>
-                </View>
-                <Text style={styles.eventLocation}>📍 Parc des Sports, Lyon</Text>
-                <Text style={styles.eventParticipants}>👥 8/12 participants</Text>
-              </View>
-              
-              <View style={styles.eventCard}>
-                <View style={styles.eventHeader}>
-                  <Text style={styles.eventTitle}>Course à pied matinale</Text>
-                  <Text style={styles.eventDate}>Demain, 7h</Text>
-                </View>
-                <Text style={styles.eventLocation}>📍 Parc de la Tête d'Or</Text>
-                <Text style={styles.eventParticipants}>👥 5/10 participants</Text>
-              </View>
-              
-              <View style={styles.eventCard}>
-                <View style={styles.eventHeader}>
-                  <Text style={styles.eventTitle}>Basket en salle</Text>
-                  <Text style={styles.eventDate}>Samedi, 20h</Text>
-                </View>
-                <Text style={styles.eventLocation}>📍 Gymnase municipal</Text>
-                <Text style={styles.eventParticipants}>👥 10/12 participants</Text>
-              </View>
+            <View style={[styles.statCard, { backgroundColor: colors.surface }]}>
+              <ImprovedIcon type="participation" size="large" />
+              <Text style={[styles.statNumber, { color: colors.primary }]}>45</Text>
+              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Participations</Text>
+            </View>
+            
+            <View style={[styles.statCard, { backgroundColor: colors.surface }]}>
+              <ImprovedIcon type="credit" size="large" />
+              <Text style={[styles.statNumber, { color: colors.primary }]}>8</Text>
+              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Crédits gagnés</Text>
             </View>
           </View>
+        </View>
 
-          {/* Community Highlights */}
-          <View style={styles.communitySection}>
-            <Text style={styles.sectionTitle}>Communauté</Text>
-            <View style={styles.communityCard}>
-              <Text style={styles.communityTitle}>🏆 Top organisateur du mois</Text>
-              <Text style={styles.communityDesc}>
-                Félicitations ! Vous êtes dans le top 10 des organisateurs les plus actifs.
-              </Text>
-            </View>
+        {/* Upcoming Events */}
+        <View style={styles.upcomingSection}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Prochains événements!</Text>
+          <View style={[styles.upcomingCard, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.upcomingTitle, { color: colors.text }]}>Aucun événement à venir</Text>
+            <Text style={[styles.upcomingDesc, { color: colors.textSecondary }]}>
+              Crée ton premier événement ou rejoins la communauté!
+            </Text>
+            <TouchableOpacity style={[styles.createEventButton, { backgroundColor: colors.primary }]}>
+              <Text style={styles.createEventButtonText}>Créer un événement!</Text>
+            </TouchableOpacity>
           </View>
-        </ScrollView>
-      </SafeAreaView>
-    </>
+        </View>
+      </ScrollView>
+    </SafeScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
+  fixedHeader: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 20,
+    borderBottomWidth: 1,
+  },
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  logoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  logoBox: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#FF6B35',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  logoText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  notificationButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#FF6B35',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  notificationButtonText: {
+    fontSize: 18,
+    color: '#ffffff',
+  },
+  userInfo: {
+    marginBottom: 20,
+  },
+  welcomeText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  subtitleText: {
+    fontSize: 14,
+  },
+  scrollView: {
     flex: 1,
-    backgroundColor: '#f7fafc',
   },
   scrollContainer: {
     paddingHorizontal: 20,
     paddingTop: 20,
-    paddingBottom: 40,
+    paddingBottom: 100,
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 30,
-  },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  logoBox: {
-    width: 50,
-    height: 50,
-    backgroundColor: '#319795',
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  logoText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#ffffff',
-  },
-  headerText: {
-    flex: 1,
-  },
-  welcomeText: {
-    fontSize: 14,
-    color: '#718096',
-  },
-  userName: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#2d3748',
-  },
-
-  statsSection: {
-    marginBottom: 30,
+  quickActionsSection: {
+    marginBottom: 32,
   },
   sectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#2d3748',
     marginBottom: 16,
+  },
+  quickActionsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  quickActionCard: {
+    width: '48%',
+    padding: 12,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    minHeight: 100,
+  },
+  quickActionTitle: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    marginTop: 6,
+    marginBottom: 4,
+    textAlign: 'center',
+  },
+  quickActionDesc: {
+    fontSize: 10,
+    textAlign: 'center',
+  },
+  recentEventsSection: {
+    marginBottom: 32,
+  },
+  eventCard: {
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 12,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  eventHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  eventInfo: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  eventTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  eventLocation: {
+    fontSize: 14,
+    marginBottom: 2,
+  },
+  eventTime: {
+    fontSize: 12,
+  },
+  eventStats: {
+    flexDirection: 'row',
+    gap: 16,
+  },
+  eventStat: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  statsSection: {
+    marginBottom: 32,
   },
   statsGrid: {
     flexDirection: 'row',
@@ -212,15 +311,11 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    backgroundColor: '#ffffff',
     padding: 16,
     borderRadius: 12,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
@@ -228,142 +323,51 @@ const styles = StyleSheet.create({
   statNumber: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#319795',
+    marginTop: 8,
     marginBottom: 4,
   },
   statLabel: {
     fontSize: 12,
-    color: '#718096',
     textAlign: 'center',
+    fontWeight: '500',
   },
-  actionsSection: {
-    marginBottom: 30,
+  upcomingSection: {
+    marginBottom: 32,
   },
-  actionsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-  },
-  actionCard: {
-    width: (width - 52) / 2,
-    backgroundColor: '#ffffff',
-    padding: 16,
-    borderRadius: 12,
+  upcomingCard: {
+    padding: 24,
+    borderRadius: 16,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowRadius: 8,
+    elevation: 4,
   },
-  actionIcon: {
-    width: 50,
-    height: 50,
-    backgroundColor: '#f7fafc',
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  actionIconText: {
-    fontSize: 24,
-  },
-  actionTitle: {
-    fontSize: 14,
+  upcomingTitle: {
+    fontSize: 18,
     fontWeight: 'bold',
-    color: '#2d3748',
-    marginBottom: 4,
-    textAlign: 'center',
-  },
-  actionDesc: {
-    fontSize: 12,
-    color: '#718096',
-    textAlign: 'center',
-  },
-  eventsSection: {
-    marginBottom: 30,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  seeAllText: {
-    color: '#319795',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  eventsList: {
-    gap: 12,
-  },
-  eventCard: {
-    backgroundColor: '#ffffff',
-    padding: 16,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  eventHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
     marginBottom: 8,
+    textAlign: 'center',
   },
-  eventTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#2d3748',
-    flex: 1,
-  },
-  eventDate: {
-    fontSize: 12,
-    color: '#319795',
-    fontWeight: '600',
-  },
-  eventLocation: {
+  upcomingDesc: {
     fontSize: 14,
-    color: '#718096',
-    marginBottom: 4,
-  },
-  eventParticipants: {
-    fontSize: 14,
-    color: '#718096',
-  },
-  communitySection: {
+    textAlign: 'center',
     marginBottom: 20,
   },
-  communityCard: {
-    backgroundColor: '#ffffff',
-    padding: 16,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
+  createEventButton: {
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 25,
+    shadowColor: '#FF6B35',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
     shadowRadius: 4,
-    elevation: 3,
+    elevation: 4,
   },
-  communityTitle: {
+  createEventButtonText: {
+    color: '#ffffff',
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#2d3748',
-    marginBottom: 8,
-  },
-  communityDesc: {
-    fontSize: 14,
-    color: '#718096',
-    lineHeight: 20,
   },
 }); 

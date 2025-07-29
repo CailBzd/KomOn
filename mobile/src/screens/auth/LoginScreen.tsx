@@ -119,7 +119,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
         extraBottomPadding={5} // Marge supplémentaire pour la barre de navigation
       >
         <DeviceAwareHeader
-          title="Connexion"
+          title="Connexion!"
           showBackButton
           onBackPress={() => navigation.navigate('Welcome')}
           backgroundColor="#f7fafc"
@@ -142,13 +142,15 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
               <View style={styles.logoBox}>
                 <Text style={styles.logoText}>K</Text>
               </View>
+              <Text style={styles.logoTitle}>KomOn!</Text>
+              <Text style={styles.logoSubtitle}>Come On, Let's Move Together!</Text>
             </View>
 
             {/* Form */}
             <View style={styles.formContainer}>
-              <Text style={styles.title}>Bon retour !</Text>
+              <Text style={styles.title}>Bon retour!</Text>
               <Text style={styles.subtitle}>
-                Connectez-vous à votre compte KomOn
+                Connectez-vous à votre compte KomOn!
               </Text>
 
               <ValidatedInput
@@ -187,12 +189,12 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
                 onPress={() => navigation.navigate('ForgotPassword')}
               >
                 <Text style={styles.forgotPasswordText}>
-                  Mot de passe oublié ?
+                  Mot de passe oublié?
                 </Text>
               </TouchableOpacity>
 
               <LoadingButton
-                title="Se connecter"
+                title="Se connecter!"
                 loadingTitle="Connexion en cours..."
                 onPress={handleLogin}
                 loading={loading}
@@ -211,15 +213,15 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
                 onPress={() => navigation.navigate('Signup')}
               >
                 <Text style={styles.signupButtonText}>
-                  Créer un compte
+                  Créer un compte!
                 </Text>
               </TouchableOpacity>
             </View>
-                      </ScrollView>
-          </KeyboardAvoidingView>
-        </SafeScreen>
-      </>
-    );
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeScreen>
+    </>
+  );
 }
 
 const styles = StyleSheet.create({
@@ -240,25 +242,38 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   logoBox: {
-    width: 60,
-    height: 60,
-    backgroundColor: '#319795',
-    borderRadius: 15,
+    width: 80,
+    height: 80,
+    backgroundColor: '#FF6B35',
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#319795',
+    shadowColor: '#FF6B35',
     shadowOffset: {
       width: 0,
-      height: 4,
+      height: 8,
     },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
+    shadowOpacity: 0.4,
+    shadowRadius: 16,
+    elevation: 12,
+    marginBottom: 16,
   },
   logoText: {
-    fontSize: 28,
+    fontSize: 40,
     fontWeight: 'bold',
     color: '#ffffff',
+  },
+  logoTitle: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#FF6B35',
+    marginBottom: 8,
+  },
+  logoSubtitle: {
+    fontSize: 16,
+    color: '#718096',
+    textAlign: 'center',
+    fontWeight: '500',
   },
   formContainer: {
     flex: 1,
@@ -282,9 +297,9 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   forgotPasswordText: {
-    color: '#319795',
+    color: '#FF6B35',
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: 'bold',
   },
   loginButton: {
     marginBottom: 24,
@@ -297,25 +312,25 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: '#e2e8f0',
+    backgroundColor: 'rgba(255, 107, 53, 0.3)',
   },
   dividerText: {
     marginHorizontal: 16,
-    color: '#718096',
+    color: 'rgba(255, 107, 53, 0.8)',
     fontSize: 14,
+    fontWeight: '600',
   },
   signupButton: {
     backgroundColor: 'transparent',
     paddingVertical: 16,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: '#319795',
+    borderColor: '#FF6B35',
   },
   signupButtonText: {
-    color: '#319795',
+    color: '#FF6B35',
     fontSize: 18,
     fontWeight: 'bold',
     textAlign: 'center',
   },
-
 }); 

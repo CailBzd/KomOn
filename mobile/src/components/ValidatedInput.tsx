@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Animated,
 } from 'react-native';
+import KomOnIcon from './KomOnIcons';
 
 interface ValidatedInputProps {
   label: string;
@@ -116,9 +117,10 @@ export default function ValidatedInput({
             onPress={onEyePress}
             activeOpacity={0.7}
           >
-            <Text style={styles.eyeIcon}>
-              {showEyeIconState ? '👁️' : '👁️‍🗨️'}
-            </Text>
+            <KomOnIcon 
+              name={showEyeIconState ? 'eye' : 'eyeOff'} 
+              size={20}
+            />
           </TouchableOpacity>
         )}
       </Animated.View>
@@ -134,7 +136,7 @@ export default function ValidatedInput({
       >
         {error && (
           <>
-            <Text style={styles.errorIcon}>⚠️</Text>
+            <KomOnIcon name="warning" size={14} />
             <Text style={styles.errorText}>{error}</Text>
           </>
         )}
@@ -183,10 +185,7 @@ const styles = StyleSheet.create({
     marginTop: 6,
     paddingHorizontal: 4,
     overflow: 'hidden',
-  },
-  errorIcon: {
-    fontSize: 14,
-    marginRight: 6,
+    gap: 6,
   },
   errorText: {
     fontSize: 12,
