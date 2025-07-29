@@ -64,6 +64,7 @@ const iconMap: { [key: string]: { component: React.ComponentType<any>; name: str
   
   // Media
   camera: { component: Ionicons, name: 'camera' },
+  photo: { component: Ionicons, name: 'camera' },
   play: { component: Ionicons, name: 'play' },
   pause: { component: Ionicons, name: 'pause' },
   stop: { component: Ionicons, name: 'square' },
@@ -98,6 +99,15 @@ const iconMap: { [key: string]: { component: React.ComponentType<any>; name: str
   more: { component: Ionicons, name: 'ellipsis-horizontal' },
   moreVertical: { component: Ionicons, name: 'ellipsis-vertical' },
   download: { component: Ionicons, name: 'download' },
+  
+  // Icônes manquantes
+  pencil: { component: Ionicons, name: 'create' },
+  wrench: { component: Ionicons, name: 'construct' },
+  tools: { component: Ionicons, name: 'construct' },
+  loading: { component: Ionicons, name: 'refresh' },
+  spinner: { component: Ionicons, name: 'refresh' },
+  stats: { component: Ionicons, name: 'stats-chart' },
+  chart: { component: Ionicons, name: 'stats-chart' },
   upload: { component: Ionicons, name: 'cloud-upload' },
   refresh: { component: Ionicons, name: 'refresh' },
   rotate: { component: Ionicons, name: 'refresh-circle' },

@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../contexts/ThemeContext';
+import KomOnIcon from './KomOnIcons';
 
 interface LayoutDebuggerProps {
   show?: boolean;
@@ -33,7 +34,10 @@ export default function LayoutDebugger({ show = false }: LayoutDebuggerProps) {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.surface }]}>
-      <Text style={[styles.title, { color: colors.text }]}>🔧 Layout Debug Info</Text>
+      <View style={styles.titleContainer}>
+        <KomOnIcon name="wrench" size={16} style={{ color: colors.text, marginRight: 6 }} />
+        <Text style={[styles.title, { color: colors.text }]}>Layout Debug Info</Text>
+      </View>
       
       <View style={styles.section}>
         <Text style={[styles.label, { color: colors.textSecondary }]}>Platform:</Text>
@@ -121,6 +125,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 12,
     fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  titleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 8,
   },
   section: {

@@ -10,6 +10,7 @@ import {
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import ImprovedIcon from '../../components/ImprovedIcon';
+import KomOnIcon from '../../components/KomOnIcons';
 import SafeScreen from '../../components/SafeScreen';
 
 const { width } = Dimensions.get('window');
@@ -30,7 +31,7 @@ export default function DashboardScreen() {
             <Text style={[styles.logoText, { color: colors.primary }]}>KomOn!</Text>
           </View>
           <TouchableOpacity style={[styles.notificationButton, { backgroundColor: colors.primary }]}>
-            <Text style={styles.notificationButtonText}>🔔</Text>
+            <KomOnIcon name="bell" size={18} style={{ color: '#ffffff' }} />
           </TouchableOpacity>
         </View>
         

@@ -21,6 +21,7 @@ import { authService } from '../../services/authService';
 import LogoutCard from '../../components/LogoutCard';
 import ThemeSelector from '../../components/ThemeSelector';
 import ImprovedIcon from '../../components/ImprovedIcon';
+import KomOnIcon from '../../components/KomOnIcons';
 import { useDeviceInfo, getDeviceMargins } from '../../utils/deviceUtils';
 
 const { width } = Dimensions.get('window');
@@ -243,7 +244,10 @@ export default function ProfileScreen() {
                 style={[styles.editButton, { backgroundColor: colors.primary }]}
                 onPress={() => setIsEditing(true)}
               >
-                <Text style={styles.editButtonText}>✏️ Modifier!</Text>
+                <View style={styles.editButtonContent}>
+                  <KomOnIcon name="edit" size={16} style={{ color: '#ffffff', marginRight: 6 }} />
+                  <Text style={styles.editButtonText}>Modifier!</Text>
+                </View>
               </TouchableOpacity>
             ) : (
               <View style={styles.editActions}>
@@ -301,7 +305,7 @@ export default function ProfileScreen() {
                     )}
                     {photoLoading && (
                       <View style={[styles.avatarLoading, { backgroundColor: colors.primary + 'CC' }]}>
-                        <Text style={styles.avatarLoadingText}>⏳</Text>
+                        <KomOnIcon name="loading" size={20} style={{ color: '#ffffff' }} />
                       </View>
                     )}
                   </View>
@@ -310,9 +314,11 @@ export default function ProfileScreen() {
                     onPress={handleChangePhoto}
                     disabled={photoLoading}
                   >
-                    <Text style={styles.changeAvatarText}>
-                      {photoLoading ? '⏳' : '📷'}
-                    </Text>
+                    {photoLoading ? (
+                      <KomOnIcon name="loading" size={16} style={{ color: '#ffffff' }} />
+                    ) : (
+                      <KomOnIcon name="camera" size={16} style={{ color: '#ffffff' }} />
+                    )}
                   </TouchableOpacity>
                 </View>
                 <View style={styles.profileInfo}>
@@ -570,6 +576,11 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 14,
     fontWeight: 'bold',
+  },
+  editButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   editActions: {
     flexDirection: 'row',
