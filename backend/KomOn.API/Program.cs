@@ -4,6 +4,7 @@ using KomOn.Core.Interfaces;
 using KomOn.Infrastructure.Services;
 using KomOn.API.Services;
 using KomOn.Infrastructure.Configuration;
+using KomOn.Infrastructure.Services;
 using KomOn.Core.DTOs;
 using AutoMapper;
 using KomOn.API.Mapping;
@@ -38,37 +39,57 @@ builder.Services.AddSwaggerGen();
 builder.Services.Configure<SupabaseSettings>(
     builder.Configuration.GetSection("Supabase"));
 
-// Database
-// builder.Services.AddDbContext<KomOnDbContext>(options =>
-//     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+// Database Configuration - Temporarily commented until service is compiled
+// builder.Services.AddKomOnDatabase(builder.Configuration);
 
 // Services
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAuthService, KomOn.Infrastructure.Services.AuthService>();
 builder.Services.AddScoped<KomOn.API.Services.AuthService>();
 builder.Services.AddScoped<SupabaseService>();
-builder.Services.AddScoped<EventService>();
+builder.Services.AddScoped<IEventService, EventService>();
 builder.Services.AddScoped<PaymentService>();
+builder.Services.AddScoped<DatabaseInitializationService>();
 
 
 
 // AutoMapper
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
-// CORS
+// CORS Configuration
+var corsOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? 
+                  new[] { "http://localhost:3000", "http://localhost:3001" };
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.WithOrigins(corsOrigins)
               .AllowAnyMethod()
-              .AllowAnyHeader();
+              .AllowAnyHeader()
+              .AllowCredentials();
     });
 });
 
 
 
 var app = builder.Build();
+
+// Initialize Database - Temporarily commented until service is compiled
+// try
+// {
+//     await DatabaseConfigurationService.InitializeDatabaseAsync(app.Services);
+// }
+// catch (Exception ex)
+// {
+//     var logger = app.Services.GetRequiredService<ILogger<Program>>();
+//     logger.LogError(ex, "Failed to initialize database");
+//     // En développement, on peut continuer, en production on devrait arrêter
+//     if (app.Environment.IsProduction())
+//     {
+//         throw;
+//     }
+// }
 
 // Méthode pour décoder le JWT Supabase et extraire l'email
 string? ExtractEmailFromSupabaseToken(string token)
@@ -226,47 +247,74 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-// Créer les comptes de test au démarrage
+// Initialiser la base de données et créer les comptes de test au démarrage
 using (var scope = app.Services.CreateScope())
 {
-    var userService = scope.ServiceProvider.GetRequiredService<IUserService>();
-    
-    // Vérifier si les comptes de test existent déjà
-    var adminUser = await userService.GetByEmailAsync("admin@komon.com");
-    if (adminUser == null)
+    try
     {
-        var createAdminRequest = new CreateUserRequest
+        // Initialiser la base de données
+        var dbInitService = scope.ServiceProvider.GetRequiredService<DatabaseInitializationService>();
+        var dbInitSuccess = await dbInitService.InitializeDatabaseAsync();
+        
+        if (dbInitSuccess)
         {
-            FirstName = "Admin",
-            LastName = "KomOn",
-            Email = "admin@komon.com",
-            DateOfBirth = new DateTime(1990, 1, 1),
-            PhoneNumber = "+33123456789",
-            Bio = "Administrateur de KomOn",
-            Password = "Admin123!",
-            Role = "Admin"
-        };
-        await userService.CreateAsync(createAdminRequest);
-        Console.WriteLine("✅ Compte admin créé: admin@komon.com / Admin123!");
+            Console.WriteLine("✅ Base de données KomOn initialisée avec succès");
+        }
+        else
+        {
+            Console.WriteLine("⚠️ Problème lors de l'initialisation de la base de données");
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"❌ Erreur lors de l'initialisation: {ex.Message}");
     }
 
-    var testUser = await userService.GetByEmailAsync("test@komon.com");
-    if (testUser == null)
+    try
     {
-        var createTestRequest = new CreateUserRequest
+        var userService = scope.ServiceProvider.GetRequiredService<IUserService>();
+        
+        // Vérifier si les comptes de test existent déjà
+        var adminUser = await userService.GetByEmailAsync("admin@komon.com");
+        if (adminUser == null)
         {
-            FirstName = "Test",
-            LastName = "User",
-            Email = "test@komon.com",
-            DateOfBirth = new DateTime(1995, 5, 15),
-            PhoneNumber = "+33987654321",
-            Bio = "Utilisateur de test",
-            Password = "Test123!",
-            Role = "Participant"
-        };
-        await userService.CreateAsync(createTestRequest);
-        Console.WriteLine("✅ Compte test créé: test@komon.com / Test123!");
+            var createAdminRequest = new CreateUserRequest
+            {
+                FirstName = "Admin",
+                LastName = "KomOn",
+                Email = "admin@komon.com",
+                DateOfBirth = new DateTime(1990, 1, 1),
+                PhoneNumber = "+33123456789",
+                Bio = "Administrateur de KomOn",
+                Password = "Admin123!",
+                Role = "Admin"
+            };
+            await userService.CreateAsync(createAdminRequest);
+            Console.WriteLine("✅ Compte admin créé: admin@komon.com / Admin123!");
+        }
+
+        var testUser = await userService.GetByEmailAsync("test@komon.com");
+        if (testUser == null)
+        {
+            var createTestRequest = new CreateUserRequest
+            {
+                FirstName = "Test",
+                LastName = "User",
+                Email = "test@komon.com",
+                DateOfBirth = new DateTime(1995, 5, 15),
+                PhoneNumber = "+33987654321",
+                Bio = "Utilisateur de test",
+                Password = "Test123!",
+                Role = "Participant"
+            };
+            await userService.CreateAsync(createTestRequest);
+            Console.WriteLine("✅ Compte test créé: test@komon.com / Test123!");
+        }
     }
-}
+    catch (Exception ex)
+    {
+        Console.WriteLine($"❌ Erreur lors de la création des comptes de test: {ex.Message}");
+    }
+}   
 
 app.Run(); 

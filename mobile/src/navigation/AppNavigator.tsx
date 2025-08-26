@@ -20,6 +20,8 @@ import DashboardScreen from '../screens/main/DashboardScreen';
 import ProfileScreen from '../screens/main/ProfileScreen';
 import EventsScreen from '../screens/main/EventsScreen';
 import CreditsScreen from '../screens/main/CreditsScreen';
+import CreateEventScreen from '../screens/main/CreateEventScreen';
+import MyEventsScreen from '../screens/main/MyEventsScreen';
 
 // Composants
 import LoadingScreen from '../components/LoadingScreen';
@@ -35,14 +37,14 @@ function MainTabs() {
       screenOptions={{
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.textSecondary,
-        tabBarStyle: {
-          backgroundColor: colors.surface,
-          borderTopWidth: 1,
-          borderTopColor: colors.border,
-          paddingBottom: 5,
-          paddingTop: 5,
-          height: 60,
-        },
+                    tabBarStyle: {
+              backgroundColor: colors.background,
+              borderTopWidth: 1,
+              borderTopColor: colors.border,
+              paddingBottom: 8,
+              paddingTop: 8,
+              height: 70,
+            },
         headerShown: false,
       }}
     >
@@ -102,7 +104,11 @@ export default function AppNavigator() {
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {user ? (
           // Routes authentifiées
-          <Stack.Screen name="Main" component={MainTabs} />
+          <>
+            <Stack.Screen name="Main" component={MainTabs} />
+            <Stack.Screen name="CreateEvent" component={CreateEventScreen} />
+            <Stack.Screen name="MyEvents" component={MyEventsScreen} />
+          </>
         ) : (
           // Routes d'authentification
           <>

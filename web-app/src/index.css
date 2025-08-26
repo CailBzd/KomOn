@@ -1,0 +1,88 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+  
+  body {
+    @apply bg-gray-50 text-gray-900;
+  }
+}
+
+@layer components {
+  /* Couleurs de marque KomOn */
+  .bg-komon-gradient {
+    background: linear-gradient(135deg, #f97316 0%, #3b82f6 100%);
+  }
+  
+  .bg-komon-gradient-dark {
+    background: linear-gradient(135deg, #ea580c 0%, #2563eb 100%);
+  }
+  
+  .text-komon-gradient {
+    background: linear-gradient(135deg, #f97316 0%, #3b82f6 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  /* Boutons avec branding KomOn */
+  .btn-primary {
+    @apply bg-komon-gradient hover:bg-komon-gradient-dark text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-xl;
+  }
+  
+  .btn-secondary {
+    @apply bg-white hover:bg-gray-50 text-gray-800 font-semibold py-3 px-6 rounded-xl border-2 border-gray-200 transition-all duration-300 hover:border-orange-300 hover:shadow-lg;
+  }
+  
+  .btn-outline {
+    @apply bg-transparent hover:bg-orange-500 text-orange-500 hover:text-white font-semibold py-3 px-6 rounded-xl border-2 border-orange-500 transition-all duration-300 hover:shadow-lg;
+  }
+  
+  /* Champs de saisie avec branding */
+  .input-field {
+    @apply w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200;
+  }
+  
+  /* Cartes avec branding */
+  .card {
+    @apply bg-white rounded-2xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-all duration-300;
+  }
+  
+  .card-gradient {
+    @apply bg-komon-gradient text-white rounded-2xl shadow-xl p-6;
+  }
+  
+  /* Badges et étiquettes */
+  .badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold;
+  }
+  
+  .badge-orange {
+    @apply bg-orange-100 text-orange-800;
+  }
+  
+  .badge-blue {
+    @apply bg-blue-100 text-blue-800;
+  }
+  
+  /* Animations et transitions */
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+  
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+  }
+  
+  /* Pattern de fond avec triangles */
+  .bg-pattern {
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Cpolygon points='30,5 55,45 5,45'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+} 

@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import {
   View,
   StyleSheet,
-  StatusBar,
   AppState,
   AppStateStatus,
   Dimensions,
@@ -10,6 +9,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../contexts/ThemeContext';
+import StatusBarManager from './StatusBarManager';
 
 interface SafeAreaWrapperProps {
   children: React.ReactNode;
@@ -47,15 +47,15 @@ export default function SafeAreaWrapper({ children, style }: SafeAreaWrapperProp
 
   const getStatusBarHeight = () => {
     if (Platform.OS === 'ios') {
-      return insets.top;
+      return insets.top + 10; // Espace réduit pour éviter le décalage
     }
-    return StatusBar.currentHeight || 0;
+    return (insets.top || 0) + 10; // Espace réduit pour éviter le décalage
   };
 
   const getBottomPadding = () => {
     const basePadding = insets.bottom;
-    const extraPadding = forceRefresh ? 50 : 0; // Padding supplémentaire si l'app vient de reprendre
-    return Math.max(basePadding, 20) + extraPadding; // Minimum 20px
+    const extraPadding = forceRefresh ? 30 : 0; // Padding supplémentaire si l'app vient de reprendre
+    return Math.max(basePadding, 10) + extraPadding; // Minimum 10px
   };
 
   return (
@@ -70,11 +70,7 @@ export default function SafeAreaWrapper({ children, style }: SafeAreaWrapperProp
         style,
       ]}
     >
-      <StatusBar
-        barStyle={colors.text === '#f7fafc' ? 'light-content' : 'dark-content'}
-        backgroundColor={colors.background}
-        translucent={true}
-      />
+      <StatusBarManager />
       {children}
     </View>
   );

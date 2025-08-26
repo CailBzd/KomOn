@@ -2,13 +2,13 @@ import React, { useEffect, useState } from 'react';
 import {
   View,
   StyleSheet,
-  StatusBar,
   Platform,
   LayoutChangeEvent,
 } from 'react-native';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAppStateManager } from '../hooks/useAppStateManager';
+import StatusBarManager from './StatusBarManager';
 
 interface SafeScreenProps {
   children: React.ReactNode;
@@ -79,8 +79,6 @@ function SafeScreenContent({
   };
 
   const dynamicMargins = getDynamicMargins();
-  const currentStatusBarStyle = statusBarStyle || (colors.text === '#f7fafc' ? 'light-content' : 'dark-content');
-  const currentStatusBarBackground = statusBarBackgroundColor || colors.background;
 
   return (
     <View 
@@ -88,10 +86,9 @@ function SafeScreenContent({
       key={key}
       onLayout={handleLayoutChange}
     >
-      <StatusBar 
-        barStyle={currentStatusBarStyle} 
-        backgroundColor={currentStatusBarBackground}
-        translucent={Platform.OS === 'android'}
+      <StatusBarManager 
+        barStyle={statusBarStyle}
+        backgroundColor={statusBarBackgroundColor}
       />
       <View style={[
         styles.content,

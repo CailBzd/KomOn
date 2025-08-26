@@ -1,47 +1,58 @@
 import React, { useEffect } from 'react';
-import { StatusBar, Platform, ViewStyle, StatusBarAnimation } from 'react-native';
-import { useDeviceInfo, getStatusBarConfig } from '../utils/deviceUtils';
+import { StatusBar, Platform } from 'react-native';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface StatusBarManagerProps {
-  style?: 'light-content' | 'dark-content' | 'default';
+  barStyle?: 'default' | 'light-content' | 'dark-content';
   backgroundColor?: string;
   translucent?: boolean;
-  hidden?: boolean;
-  animated?: boolean;
-  animation?: StatusBarAnimation;
 }
 
-export default function StatusBarManager({
-  style = 'dark-content',
-  backgroundColor = 'transparent',
-  translucent = true,
-  hidden = false,
-  animated = true,
-  animation = 'fade',
+export default function StatusBarManager({ 
+  barStyle, 
+  backgroundColor, 
+  translucent = true 
 }: StatusBarManagerProps) {
-  const deviceInfo = useDeviceInfo();
-  const statusBarConfig = getStatusBarConfig(deviceInfo);
+  const { colors } = useTheme();
+
+  // Déterminer le style de la barre en fonction du thème
+  const getBarStyle = () => {
+    if (barStyle) return barStyle;
+    
+    // Pour les thèmes sombres, utiliser light-content
+    if (colors.background === '#1a202c' || colors.background === '#2d3748') {
+      return 'light-content';
+    }
+    
+    // Pour les thèmes clairs, utiliser dark-content
+    return 'dark-content';
+  };
+
+  // Déterminer la couleur de fond
+  const getBackgroundColor = () => {
+    return backgroundColor || colors.background;
+  };
 
   useEffect(() => {
-    // Configuration de la barre de statut avec marges adaptatives
-    StatusBar.setBarStyle(style, animated);
-    
+    // Mettre à jour la barre de statut quand le thème change
     if (Platform.OS === 'android') {
-      StatusBar.setBackgroundColor(backgroundColor);
-      StatusBar.setTranslucent(translucent);
+      StatusBar.setBackgroundColor(getBackgroundColor());
+      StatusBar.setBarStyle(getBarStyle());
+      StatusBar.setTranslucent(true);
     }
-    
-    if (hidden) {
-      StatusBar.setHidden(true, animation);
-    } else {
-      StatusBar.setHidden(false, animation);
-    }
-  }, [style, backgroundColor, translucent, hidden, animated, animation]);
+  }, [colors.background, colors.text]);
 
-  return null;
+  return (
+    <StatusBar
+      barStyle={getBarStyle()}
+      backgroundColor={getBackgroundColor()}
+      translucent={translucent}
+      animated={true}
+    />
+  );
 }
 
-// Utilitaires pour différents types d'écrans avec marges adaptatives
+// Utilitaires pour différents types d'écrans
 export const StatusBarPresets = {
   // Écrans sombres (fond noir/dark)
   dark: {
@@ -86,14 +97,16 @@ export const StatusBarPresets = {
   },
 };
 
-// Hook personnalisé pour gérer la barre de statut avec marges adaptatives
+// Hook personnalisé pour gérer la barre de statut
 export const useAdaptiveStatusBar = (preset: keyof typeof StatusBarPresets = 'adaptive') => {
-  const deviceInfo = useDeviceInfo();
-  const statusBarConfig = getStatusBarConfig(deviceInfo);
-  
   return {
     ...StatusBarPresets[preset],
-    extraTopMargin: statusBarConfig.extraTopMargin,
-    deviceInfo,
+    extraTopMargin: 0,
+    deviceInfo: {
+      isAndroid: Platform.OS === 'android',
+      isIOS: Platform.OS === 'ios',
+      statusBarHeight: 0,
+      extraTopMargin: 0,
+    },
   };
 }; 

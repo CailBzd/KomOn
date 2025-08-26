@@ -10,7 +10,7 @@ import {
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import ImprovedIcon from '../../components/ImprovedIcon';
-import SafeAreaWrapper from '../../components/SafeAreaWrapper';
+import MainLayout from '../../components/MainLayout';
 
 const { width } = Dimensions.get('window');
 
@@ -19,77 +19,64 @@ export default function CreditsScreen() {
   const { colors } = useTheme();
 
   return (
-    <SafeAreaWrapper>
-      {/* Fixed Header */}
-      <View style={[styles.fixedHeader, { backgroundColor: colors.background, borderBottomColor: colors.border }]}>
-        <View style={styles.headerTop}>
-          <View style={styles.logoContainer}>
-            <View style={[styles.logoBox, { backgroundColor: colors.primary }]}>
-              <Text style={styles.logoText}>K</Text>
-            </View>
-            <Text style={[styles.logoText, { color: colors.primary }]}>KomOn!</Text>
-          </View>
-          <TouchableOpacity style={[styles.buyButton, { backgroundColor: colors.primary }]}>
-            <Text style={styles.buyButtonText}>Acheter!</Text>
-          </TouchableOpacity>
+    <MainLayout
+      headerTitle={`Bonjour, ${user?.firstName || 'Sportif'}!`}
+      headerSubtitle="Gère tes crédits et crée des événements!"
+      headerRightComponent={
+        <TouchableOpacity style={[styles.buyButton, { backgroundColor: colors.primary }]}>
+          <Text style={styles.buyButtonText}>Acheter!</Text>
+        </TouchableOpacity>
+      }
+    >
+      {/* Credits Balance */}
+      <View style={styles.balanceSection}>
+        <View style={[styles.balanceCard, { backgroundColor: colors.primary }]}>
+          <Text style={styles.balanceLabel}>Solde actuel</Text>
+          <Text style={styles.balanceAmount}>8 crédits</Text>
+          <Text style={styles.balanceValue}>≈ 8,00 €</Text>
         </View>
-        
-        {/* User Info */}
-        <View style={styles.userInfo}>
-          <Text style={[styles.welcomeText, { color: colors.text }]}>Bonjour, {user?.firstName || 'Sportif'}!</Text>
-          <Text style={[styles.subtitleText, { color: colors.textSecondary }]}>Gère tes crédits et crée des événements!</Text>
-        </View>
+      </View>
 
-        {/* Credits Balance */}
-        <View style={styles.balanceSection}>
-          <View style={[styles.balanceCard, { backgroundColor: colors.primary }]}>
-            <Text style={styles.balanceLabel}>Solde actuel</Text>
-            <Text style={styles.balanceAmount}>8 crédits</Text>
-            <Text style={styles.balanceValue}>≈ 8,00 €</Text>
-          </View>
+      {/* Quick Actions */}
+      <View style={styles.quickActionsSection}>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Actions rapides</Text>
+        <View style={styles.quickActionsGrid}>
+          <TouchableOpacity style={[styles.quickActionCard, { backgroundColor: colors.surface }]}>
+            <ImprovedIcon type="create" size="small" />
+            <Text style={[styles.quickActionText, { color: colors.text }]}>Créer</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity style={[styles.quickActionCard, { backgroundColor: colors.surface }]}>
+            <ImprovedIcon type="participation" size="small" />
+            <Text style={[styles.quickActionText, { color: colors.text }]}>Participer</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity style={[styles.quickActionCard, { backgroundColor: colors.surface }]}>
+            <ImprovedIcon type="purchase" size="small" />
+            <Text style={[styles.quickActionText, { color: colors.text }]}>Acheter</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity style={[styles.quickActionCard, { backgroundColor: colors.surface }]}>
+            <ImprovedIcon type="credit" size="small" />
+            <Text style={[styles.quickActionText, { color: colors.text }]}>Historique</Text>
+          </TouchableOpacity>
         </View>
+      </View>
 
-        {/* Quick Actions */}
-        <View style={styles.quickActionsSection}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Actions rapides</Text>
-          <View style={styles.quickActionsGrid}>
-            <TouchableOpacity style={[styles.quickActionCard, { backgroundColor: colors.surface }]}>
-              <ImprovedIcon type="create" size="small" />
-              <Text style={[styles.quickActionText, { color: colors.text }]}>Créer</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity style={[styles.quickActionCard, { backgroundColor: colors.surface }]}>
-              <ImprovedIcon type="participation" size="small" />
-              <Text style={[styles.quickActionText, { color: colors.text }]}>Participer</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity style={[styles.quickActionCard, { backgroundColor: colors.surface }]}>
-              <ImprovedIcon type="purchase" size="small" />
-              <Text style={[styles.quickActionText, { color: colors.text }]}>Acheter</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity style={[styles.quickActionCard, { backgroundColor: colors.surface }]}>
-              <ImprovedIcon type="credit" size="small" />
-              <Text style={[styles.quickActionText, { color: colors.text }]}>Historique</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Filters */}
-        <View style={styles.filtersSection}>
-          <TouchableOpacity style={[styles.filterButton, styles.filterButtonActive, { backgroundColor: colors.primary, borderColor: colors.primary }]}>
-            <Text style={styles.filterButtonTextActive}>Tout</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.filterButton, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <Text style={[styles.filterButtonText, { color: colors.textSecondary }]}>Achats</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.filterButton, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <Text style={[styles.filterButtonText, { color: colors.textSecondary }]}>Gains</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.filterButton, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <Text style={[styles.filterButtonText, { color: colors.textSecondary }]}>Utilisations</Text>
-          </TouchableOpacity>
-        </View>
+      {/* Filters */}
+      <View style={styles.filtersSection}>
+        <TouchableOpacity style={[styles.filterButton, styles.filterButtonActive, { backgroundColor: colors.primary, borderColor: colors.primary }]}>
+          <Text style={styles.filterButtonTextActive}>Tout</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.filterButton, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <Text style={[styles.filterButtonText, { color: colors.textSecondary }]}>Achats</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.filterButton, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <Text style={[styles.filterButtonText, { color: colors.textSecondary }]}>Gains</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.filterButton, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <Text style={[styles.filterButtonText, { color: colors.textSecondary }]}>Utilisations</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Scrollable Content */}
@@ -201,7 +188,7 @@ export default function CreditsScreen() {
           </View>
         </View>
       </ScrollView>
-    </SafeAreaWrapper>
+    </MainLayout>
   );
 }
 
@@ -355,8 +342,8 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 120, // Augmenté pour éviter la navigation
+    paddingTop: 15, // Espace uniforme pour tous les écrans
+    paddingBottom: 90,
   },
   howItWorksSection: {
     marginBottom: 32,

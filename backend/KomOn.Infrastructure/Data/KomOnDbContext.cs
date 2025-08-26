@@ -1,12 +1,16 @@
 using KomOn.Core.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace KomOn.Infrastructure.Data;
 
 public class KomOnDbContext : DbContext
 {
-    public KomOnDbContext(DbContextOptions<KomOnDbContext> options) : base(options)
+    private readonly ILogger<KomOnDbContext> _logger;
+
+    public KomOnDbContext(DbContextOptions<KomOnDbContext> options, ILogger<KomOnDbContext> logger) : base(options)
     {
+        _logger = logger;
     }
 
     public DbSet<User> Users { get; set; }

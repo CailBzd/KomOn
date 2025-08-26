@@ -11,7 +11,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import ImprovedIcon from '../../components/ImprovedIcon';
 import KomOnIcon from '../../components/KomOnIcons';
-import SafeScreen from '../../components/SafeScreen';
+import MainLayout from '../../components/MainLayout';
 
 const { width } = Dimensions.get('window');
 
@@ -20,28 +20,10 @@ export default function DashboardScreen() {
   const { colors } = useTheme();
 
   return (
-    <SafeScreen>
-      {/* Fixed Header */}
-      <View style={[styles.fixedHeader, { backgroundColor: colors.background, borderBottomColor: colors.border }]}>
-        <View style={styles.headerTop}>
-          <View style={styles.logoContainer}>
-            <View style={[styles.logoBox, { backgroundColor: colors.primary }]}>
-              <Text style={styles.logoText}>K</Text>
-            </View>
-            <Text style={[styles.logoText, { color: colors.primary }]}>KomOn!</Text>
-          </View>
-          <TouchableOpacity style={[styles.notificationButton, { backgroundColor: colors.primary }]}>
-            <KomOnIcon name="bell" size={18} style={{ color: '#ffffff' }} />
-          </TouchableOpacity>
-        </View>
-        
-        {/* User Info */}
-        <View style={styles.userInfo}>
-          <Text style={[styles.welcomeText, { color: colors.text }]}>Bonjour, {user?.firstName || 'Sportif'}!</Text>
-          <Text style={[styles.subtitleText, { color: colors.textSecondary }]}>Prêt pour une nouvelle activité?</Text>
-        </View>
-      </View>
-
+    <MainLayout
+      headerTitle={`Bonjour, ${user?.firstName || 'Sportif'}!`}
+      headerSubtitle="Prêt pour une nouvelle activité?"
+    >
       {/* Scrollable Content */}
       <ScrollView 
         style={styles.scrollView}
@@ -150,78 +132,18 @@ export default function DashboardScreen() {
           </View>
         </View>
       </ScrollView>
-    </SafeScreen>
+    </MainLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  fixedHeader: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 20,
-    borderBottomWidth: 1,
-  },
-  headerTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  logoContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  logoBox: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#FF6B35',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 4,
-  },
-  logoText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  notificationButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#FF6B35',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 4,
-  },
-  notificationButtonText: {
-    fontSize: 18,
-    color: '#ffffff',
-  },
-  userInfo: {
-    marginBottom: 20,
-  },
-  welcomeText: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 4,
-  },
-  subtitleText: {
-    fontSize: 14,
-  },
   scrollView: {
     flex: 1,
   },
   scrollContainer: {
     paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 100,
+    paddingTop: 15, // Espace uniforme pour tous les écrans
+    paddingBottom: 90,
   },
   quickActionsSection: {
     marginBottom: 32,

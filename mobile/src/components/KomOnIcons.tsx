@@ -45,6 +45,7 @@ const iconMap: { [key: string]: { component: React.ComponentType<any>; name: str
   // Événements et sport
   location: { component: Ionicons, name: 'location' },
   mapPin: { component: Ionicons, name: 'location' },
+  'map-pin': { component: Ionicons, name: 'location' },
   time: { component: Ionicons, name: 'time' },
   clock: { component: Ionicons, name: 'time' },
   trophy: { component: Ionicons, name: 'trophy' },

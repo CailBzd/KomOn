@@ -55,6 +55,22 @@ public class Event
     
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     
+    // Nouvelles propriétés avancées pour les événements
+    public string Visibility { get; set; } = "public"; // public, private, invitation
+    public string RegistrationType { get; set; } = "automatic"; // automatic, approval, invitation_only
+    public bool WaitingListEnabled { get; set; } = false;
+    public int MaxWaitingList { get; set; } = 5;
+    public string ContributionType { get; set; } = "none"; // none, fixed, variable
+    public decimal ContributionAmount { get; set; } = 0;
+    public string? ContributionDescription { get; set; }
+    public bool AllowGuests { get; set; } = false;
+    public int MaxGuestsPerParticipant { get; set; } = 1;
+    public bool AutoApproveRegistrations { get; set; } = true;
+    public bool RequirePhoneNumber { get; set; } = false;
+    public bool RequireEmergencyContact { get; set; } = false;
+    public string? CancellationPolicy { get; set; }
+    public string? RefundPolicy { get; set; }
+    
     // Navigation properties
     public virtual ICollection<EventRegistration> Registrations { get; set; } = new List<EventRegistration>();
 }
